@@ -55,17 +55,21 @@ export class MatchParserSC2 {
 			teamRightCountry,
 		} = isTeam ? this.getTeamRowValues(match) : this.getSoloRowValues(match);
 
-		const [bestOf] = this.getValueRow(match, ['Best of ']);
-		const [tournament] = this.getValueRow(match, ['tournament-text']);
-		const [featured] = this.getValueRow(match, ['tournament-highlighted'], {
-			directMatch: true,
-		});
 		const [timeAndStreams] = this.getValueRow(match, ['match-countdown']);
 		const timeExists = timeAndStreams && timeAndStreams.indexOf('data-timestamp') > -1;
 
 		if ((!teamLeftName && !teamRightName) || !timeExists) {
 			return null;
 		}
+
+		const [bestOf] = this.getValueRow(match, ['Best of ']);
+		const [tournament] = this.getValueRow(match, ['tournament-text']);
+		const [featured] = this.getValueRow(match, ['tournament-highlighted'], {
+			directMatch: true,
+		});
+		const [scoreLeft, scoreRight] = this.getValueRow(match, ['line-height:1.1'], {
+			rowCount: 2,
+		});
 
 		const values = this.formatMatchValues(
 			{
@@ -79,6 +83,8 @@ export class MatchParserSC2 {
 				tournament,
 				timeAndStreams,
 				featured,
+				scoreLeft,
+				scoreRight,
 			},
 			isTeam,
 		);
@@ -160,11 +166,18 @@ export class MatchParserSC2 {
 	};
 
 	private formatMatchValues = (match: any, isTeam: boolean): Match => ({
-		teamLeft: this.parseTeam(match.teamLeftName, match.teamLeftCountry, match.teamLeftRace, isTeam),
+		teamLeft: this.parseTeam(
+			match.teamLeftName,
+			match.teamLeftCountry,
+			match.teamLeftRace,
+			match.scoreLeft,
+			isTeam,
+		),
 		teamRight: this.parseTeam(
 			match.teamRightName,
 			match.teamRightCountry,
 			match.teamRightRace,
+			match.scoreRight,
 			isTeam,
 		),
 		bestOf: match.bestOf ? parseInt(match.bestOf.replace('Bo', '')) : null,
@@ -173,7 +186,13 @@ export class MatchParserSC2 {
 		...this.formatTimeAndStreamValues(match.timeAndStreams),
 	});
 
-	private parseTeam = (name: string, country: string, race: string, isTeam: boolean) => {
+	private parseTeam = (
+		name: string,
+		country: string,
+		race: string,
+		score: string,
+		isTeam: boolean,
+	) => {
 		const linkName = this.parseValue(name, /\[\[([^\|]+)/);
 		const pName = this.parseValue(name, /\|([^\]]+)\]\]/);
 		if (!pName || !linkName) {
@@ -181,11 +200,13 @@ export class MatchParserSC2 {
 		}
 		const pCountry = this.parseValue(country, /File:(\w\w)_/);
 		const pRace = this.parseValue(race, /File:(\w+) race/)?.toLowerCase() ?? null;
+		const pScore = this.parseValue(country, /^:?(\d+)/);
 		return {
 			name: isTeam ? linkName : pName,
 			country: pCountry,
 			race: pRace,
 			link: linkName ? `${config.sc2WikiRootUrl}/${linkName.replaceAll(' ', '_')}` : null,
+			score: pScore,
 		};
 	};
 

@@ -14,6 +14,7 @@ export type MatchTeam = {
 	country: string | null;
 	race: string | null;
 	link: string | null;
+	score: string | null;
 };
 
 export type MatchTournament = {

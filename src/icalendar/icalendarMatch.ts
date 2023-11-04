@@ -42,7 +42,8 @@ const getDuration = (bestOf: number | null): ics.DurationObject => {
 };
 
 const getTitle = (match: Match) => {
-	return `${match.teamLeft?.name ?? 'TBD'} vs. ${match.teamRight?.name ?? 'TBD'} | ${
+	const featured = match.featured ? '✪ ' : '';
+	return `${featured}${match.teamLeft?.name ?? 'TBD'} vs. ${match.teamRight?.name ?? 'TBD'} | ${
 		match.tournament?.name ?? ''
 	}`;
 };
