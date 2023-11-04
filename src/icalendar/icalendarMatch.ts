@@ -31,7 +31,7 @@ const matchToIcal = (match: Match): ics.EventAttributes => {
 
 const getTime = (isoDate: string): ics.DateArray => {
 	const d = new Date(isoDate);
-	return [d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes()];
+	return [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()];
 };
 
 const getDuration = (bestOf: number | null): ics.DurationObject => {
@@ -50,11 +50,10 @@ const getTitle = (match: Match) => {
 const getDescription = (match: Match) => {
 	const streams =
 		match.streams.length > 0 ? `Streams: ${match.streams.map((s) => s.link).join('\n ')}` : '';
-	const tournament = match.tournament?.link ? `\r\nMore info at ${match.tournament.link}` : '';
-	return `Match ${getDescriptionTeam(match.teamLeft)} vs. ${getDescriptionTeam(
+	const tournament = match.tournament?.link ? `\r\nMore info: ${match.tournament.link}` : '';
+	return `Match: ${getDescriptionTeam(match.teamLeft)} vs. ${getDescriptionTeam(
 		match.teamRight,
-	)}, playing in tournament ${match.tournament?.name ?? '-unknown-'}.
-  ${streams}${tournament}`;
+	)}\nTournament: ${match.tournament?.name ?? '-unknown-'}\n${streams}${tournament}`;
 };
 
 const getDescriptionTeam = (team: MatchTeam | null) => {
@@ -70,16 +69,16 @@ const getDescriptionTeam = (team: MatchTeam | null) => {
 
 const getHtmlDesription = (match: Match) => {
 	let html = '<!DOCTYPE html><html><body>';
-	html += `Match ${getHtmlDescriptionTeam(match.teamLeft)} vs. ${getHtmlDescriptionTeam(
+	html += `Match: ${getHtmlDescriptionTeam(match.teamLeft)} vs. ${getHtmlDescriptionTeam(
 		match.teamRight,
-	)}, playing in tournament <strong>${match.tournament?.name ?? '-unknown-'}</strong>`;
+	)}Tournament <strong>${match.tournament?.name ?? '-unknown-'}</strong>`;
 	if (match.streams.length > 0) {
 		html += `<br />Streams: ${match.streams
 			.map((s) => `<a href="${s.link}">${s.channel}</a>`)
 			.join('<br />')}`;
 	}
 	if (match.tournament?.link) {
-		html += `<br />More info at <a href="${match.tournament.link}">Liquipedia.net</a>.`;
+		html += `<br />More info: <a href="${match.tournament.link}">Liquipedia.net</a>.`;
 	}
 	html += '</body></html>';
 	return html;
