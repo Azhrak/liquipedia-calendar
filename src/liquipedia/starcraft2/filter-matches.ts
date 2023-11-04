@@ -1,12 +1,12 @@
 import { Match } from '@/@types/match';
 import { config } from '@/config';
 
-type FilterParams = {
-	player: string | null;
-	race: string | null;
-	country: string | null;
-	tournament: string | null;
-	featured: string | null;
+export type FilterParams = {
+	player?: string | null;
+	race?: string | null;
+	country?: string | null;
+	tournament?: string | null;
+	featured?: string | null;
 };
 
 export const filterMatches = (matches: Match[], params: FilterParams) => {
@@ -14,10 +14,14 @@ export const filterMatches = (matches: Match[], params: FilterParams) => {
 		return matches;
 	}
 
-	const player = params.player?.toLowerCase();
-	const race = params.race?.toLowerCase();
-	const country = params.country?.toLowerCase();
-	const tournament = params.tournament?.toLowerCase().replace(config.sc2WikiRootUrl, '');
+	const player = params.player?.toLowerCase().slice(0, 32);
+	const race = params.race?.toLowerCase().slice(0, 16);
+	const country = params.country?.toLowerCase().slice(0, 3);
+	const tournament = params.tournament
+		?.toLowerCase()
+		.replace(config.sc2WikiRootUrl, '')
+		.slice(0, 256);
+	const featured = params.featured?.slice(0, 6);
 
 	const filterFunctions: [(m: Match) => boolean] = [() => true];
 
@@ -52,9 +56,9 @@ export const filterMatches = (matches: Match[], params: FilterParams) => {
 		filterFunctions.push(testTournament);
 	}
 
-	if (params.featured && params.featured.length > 0) {
+	if (featured && featured.length > 0) {
 		const testFeatured = (match: Match) => {
-			return match.featured.toString() === params.featured;
+			return match.featured.toString() === featured;
 		};
 		filterFunctions.push(testFeatured);
 	}

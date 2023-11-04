@@ -118,13 +118,6 @@ export class MatchParserSC2 {
 			match.findIndex((m) => m.indexOf('class="team-right') > -1),
 			match.findIndex((m) => m.indexOf('class="match-countdown') > -1),
 		);
-		if (teamRightCells.length <= 0) {
-			console.log(match);
-			console.log(
-				match.findIndex((m) => m.indexOf('class="team-right') > -1),
-				match.findIndex((m) => m.indexOf('class="match-countdown') > -1),
-			);
-		}
 		[name] = this.getValueRow(teamRightCells, ['race icon']);
 		const teamRightName = name === 'TBD' ? null : name;
 		const [teamRightRace, teamRightCountry] = (() => {
