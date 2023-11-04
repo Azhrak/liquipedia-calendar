@@ -1,5 +1,5 @@
-import { extractMatches } from '@/liquipedia/extract-matches';
-import { filterMatches } from '@/liquipedia/filter-matches';
+import { extractMatches } from '@/liquipedia/starcraft2/extract-matches';
+import { filterMatches } from '@/liquipedia/starcraft2/filter-matches';
 
 export async function getMatches(request: Request) {
 	const matches = await extractMatches();
@@ -9,6 +9,7 @@ export async function getMatches(request: Request) {
 		race: searchParams.get('race'),
 		country: searchParams.get('country'),
 		tournament: searchParams.get('tournament'),
+		featured: searchParams.get('featured'),
 	});
 	return filtered;
 }

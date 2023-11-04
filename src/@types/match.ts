@@ -5,6 +5,7 @@ export type Match = {
 	bestOf: number | null;
 	time: string | null;
 	tournament: MatchTournament | null;
+	featured: boolean;
 	streams: MatchStream[];
 };
 

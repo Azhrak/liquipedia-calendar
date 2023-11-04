@@ -1,4 +1,4 @@
 export const config = {
-	wikiRootUrl: process.env.WIKI_ROOT_URL ?? '',
+	sc2WikiRootUrl: process.env.SC2_WIKI_ROOT_URL ?? '',
 	fileCacheDir: process.env.FILE_CACHE_DIR ?? 'tmp',
 };
