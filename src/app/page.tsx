@@ -15,6 +15,10 @@ export default function Home() {
 				<p className="text-l">
 					Pick desired filters (if any), and get the link below to paste into your calendar app.
 				</p>
+				<p className="text-l">
+					Syncing external calendars with Google Calendar is pain, so{' '}
+					<a href="https://github.com/derekantrican/GAS-ICS-Sync">this script</a> might help you.
+				</p>
 				<p className="text-sm">Currently only supporting the StarCraft II Liquipedia.</p>
 			</div>
 
