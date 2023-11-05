@@ -38,7 +38,7 @@ const getDuration = (bestOf: number | null): ics.DurationObject => {
 	if (!bestOf) {
 		return { minutes: undefined };
 	}
-	return { minutes: bestOf * 25 };
+	return { minutes: (bestOf - 1) * 25 || 25 };
 };
 
 const getTitle = (match: Match) => {
