@@ -3,7 +3,7 @@
 import { useFilters } from '@/components/providers/FiltersProvider';
 import Image from 'next/image';
 
-export const Filters = () => {
+export const StarCraft2Filters = () => {
 	const {
 		state,
 		filterPlayer,

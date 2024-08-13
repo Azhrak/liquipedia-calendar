@@ -1,10 +1,10 @@
-import { extractMatches } from '@/liquipedia/starcraft2/extract-matches';
-import { filterMatches } from '@/liquipedia/starcraft2/filter-matches';
+import { extractStarCraft2Matches } from '@/liquipedia/starcraft2/extract-matches';
+import { filterStarCraft2Matches } from '@/liquipedia/starcraft2/filter-matches';
 
 export async function getMatches(request: Request) {
-	const matches = await extractMatches();
+	const matches = await extractStarCraft2Matches();
 	const { searchParams } = new URL(request.url);
-	const filtered = filterMatches(matches, {
+	const filtered = filterStarCraft2Matches(matches, {
 		player: searchParams.get('player'),
 		race: searchParams.get('race'),
 		country: searchParams.get('country'),

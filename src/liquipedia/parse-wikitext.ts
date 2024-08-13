@@ -1,5 +1,6 @@
 export const wikitextToArray = (data: string) => {
 	const formatted = data.replaceAll('\\"', '"');
+	console.log(formatted);
 	const matches = formatted.matchAll(
 		/<(?:div|span|tr|td|p|table|abbr)\s*([^>]*)|(\[\[[^\]]+\]\])|>(?![\[<&\)}\\n])([^<]+)(?<![\( ])/g,
 	);

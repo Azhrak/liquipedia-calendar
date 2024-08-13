@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
-import { SC2Match, SC2MatchStream } from '../../@types/starcraft';
 import { findMatches, simpleHash } from '../../utils/utils';
 import { config } from '../../config';
+import { StormgateMatch, StormgateMatchStream } from '@/@types/stormgate';
 
 type SearchDirection = 'asc' | 'desc';
 
@@ -13,7 +13,7 @@ type GetValueRowOptions = {
 	rowCount?: number;
 };
 
-export class MatchParserStarCraft2 {
+export class MatchParserStormgate {
 	parseMatches = (data: string[]) => {
 		const split = this.splitMatches(data);
 		const matches = split.map(this.getMatchValues);
@@ -22,7 +22,7 @@ export class MatchParserStarCraft2 {
 				match &&
 				!matches.find((duplicate, j) => duplicate && match.hash === duplicate.hash && i < j),
 		);
-		return (uniqueMatches as SC2Match[]).sort((a, b) => {
+		return (uniqueMatches as StormgateMatch[]).sort((a, b) => {
 			return new Date(a.time ?? '') > new Date(b.time ?? '') ? 1 : -1;
 		});
 	};
@@ -43,15 +43,15 @@ export class MatchParserStarCraft2 {
 		return matches;
 	};
 
-	private getMatchValues = (match: string[]): SC2Match | null => {
+	private getMatchValues = (match: string[]): StormgateMatch | null => {
 		const isTeam = this.findValueIndex(match, 'team-template-text') > -1;
 
 		const {
 			teamLeftName,
-			teamLeftRace,
+			teamLeftFaction,
 			teamLeftCountry,
 			teamRightName,
-			teamRightRace,
+			teamRightFaction,
 			teamRightCountry,
 		} = isTeam ? this.getTeamRowValues(match) : this.getSoloRowValues(match);
 
@@ -74,10 +74,10 @@ export class MatchParserStarCraft2 {
 		const values = this.formatMatchValues(
 			{
 				teamLeftName,
-				teamLeftRace,
+				teamLeftFaction,
 				teamLeftCountry,
 				teamRightName,
-				teamRightRace,
+				teamRightFaction,
 				teamRightCountry,
 				bestOf,
 				tournament,
@@ -92,7 +92,7 @@ export class MatchParserStarCraft2 {
 		return { ...values, hash: this.getMatchHash(values) };
 	};
 
-	private getMatchHash = (match: SC2Match) => {
+	private getMatchHash = (match: StormgateMatch) => {
 		return simpleHash(
 			`${match.teamLeft?.name ?? ''}
      ${match.teamRight?.name ?? ''}
@@ -106,9 +106,9 @@ export class MatchParserStarCraft2 {
 			match.findIndex((m) => m.indexOf('class="team-left') > -1),
 			match.findIndex((m) => m.indexOf('class="versus') > -1),
 		);
-		let [name] = this.getValueRow(teamLeftCells, ['starcraft-inline-player']);
+		let [name] = this.getValueRow(teamLeftCells, ['starcraft-inline-player']); // NOTE: this class is indeed "starcraft" and not stormgate yet
 		const teamLeftName = name === 'TBD' ? null : name;
-		const [teamLeftRace, teamLeftCountry] = (() => {
+		const [teamLeftFaction, teamLeftCountry] = (() => {
 			if (!teamLeftName) {
 				return [null, null];
 			}
@@ -126,7 +126,7 @@ export class MatchParserStarCraft2 {
 		);
 		[name] = this.getValueRow(teamRightCells, ['race icon']);
 		const teamRightName = name === 'TBD' ? null : name;
-		const [teamRightRace, teamRightCountry] = (() => {
+		const [teamRightFaction, teamRightCountry] = (() => {
 			if (!teamRightName) {
 				return [null, null];
 			}
@@ -140,10 +140,10 @@ export class MatchParserStarCraft2 {
 
 		return {
 			teamLeftName,
-			teamLeftRace,
+			teamLeftFaction,
 			teamLeftCountry,
 			teamRightName,
-			teamRightRace,
+			teamRightFaction,
 			teamRightCountry,
 		};
 	};
@@ -157,26 +157,26 @@ export class MatchParserStarCraft2 {
 
 		return {
 			teamLeftName,
-			teamLeftRace: null,
+			teamLeftFaction: null,
 			teamLeftCountry: null,
 			teamRightName,
-			teamRightRace: null,
+			teamRightFaction: null,
 			teamRightCountry: null,
 		};
 	};
 
-	private formatMatchValues = (match: any, isTeam: boolean): SC2Match => ({
+	private formatMatchValues = (match: any, isTeam: boolean): StormgateMatch => ({
 		teamLeft: this.parseTeam(
 			match.teamLeftName,
 			match.teamLeftCountry,
-			match.teamLeftRace,
+			match.teamLeftFaction,
 			match.scoreLeft,
 			isTeam,
 		),
 		teamRight: this.parseTeam(
 			match.teamRightName,
 			match.teamRightCountry,
-			match.teamRightRace,
+			match.teamRightFaction,
 			match.scoreRight,
 			isTeam,
 		),
@@ -189,7 +189,7 @@ export class MatchParserStarCraft2 {
 	private parseTeam = (
 		name: string,
 		country: string,
-		race: string,
+		faction: string,
 		score: string,
 		isTeam: boolean,
 	) => {
@@ -199,13 +199,13 @@ export class MatchParserStarCraft2 {
 			return null;
 		}
 		const pCountry = this.parseValue(country, /File:(\w\w)_/);
-		const pRace = this.parseValue(race, /File:(\w+) race/)?.toLowerCase() ?? null;
+		const pFaction = this.parseValue(faction, /File:(\w+) race/)?.toLowerCase() ?? null;
 		const pScore = this.parseValue(country, /^:?(\d+)/);
 		return {
 			name: isTeam ? linkName : pName,
 			country: pCountry,
-			race: pRace,
-			link: linkName ? `${config.sc2WikiRootUrl}/${linkName.replaceAll(' ', '_')}` : null,
+			faction: pFaction,
+			link: linkName ? `${config.sgWikiRootUrl}/${linkName.replaceAll(' ', '_')}` : null,
 			score: pScore,
 		};
 	};
@@ -214,7 +214,7 @@ export class MatchParserStarCraft2 {
 		const match = tournament?.match(/\[\[([^|]+)\|([^\]]+)/);
 		return match
 			? {
-					link: `${config.sc2WikiRootUrl}/${match[1]}`,
+					link: `${config.sgWikiRootUrl}/${match[1]}`,
 					name: match[2],
 			  }
 			: null;
@@ -227,7 +227,7 @@ export class MatchParserStarCraft2 {
 
 	private formatTimeAndStreamValues = (timeAndStreams: string | null) => {
 		let time = null;
-		let streams: SC2MatchStream[] = [];
+		let streams: StormgateMatchStream[] = [];
 		if (!timeAndStreams) {
 			return { time, streams };
 		}
@@ -242,7 +242,7 @@ export class MatchParserStarCraft2 {
 				streams.push({
 					provider: element[1],
 					channel: element[2],
-					link: `${config.sc2WikiRootUrl}/Special:Stream/${element[1]}/${element[2]}`,
+					link: `${config.sgWikiRootUrl}/Special:Stream/${element[1]}/${element[2]}`,
 				});
 			}
 		}

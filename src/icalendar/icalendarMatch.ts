@@ -1,8 +1,8 @@
 import ics, { createEvents } from 'ics';
-import { Match, MatchTeam } from '../@types/match';
+import { SC2Match, SC2MatchTeam } from '../@types/starcraft';
 import { ucFirst } from '../utils/utils';
 
-export const createMatchEvents = (matches: Match[]) => {
+export const createMatchEvents = (matches: SC2Match[]) => {
 	const { error, value } = createEvents(matches.map(matchToIcal));
 	if (error) {
 		console.error(error);
@@ -11,7 +11,7 @@ export const createMatchEvents = (matches: Match[]) => {
 	return value;
 };
 
-const matchToIcal = (match: Match): ics.EventAttributes => {
+const matchToIcal = (match: SC2Match): ics.EventAttributes => {
 	return {
 		calName: 'Liquipedia Match Calendar',
 		start: getTime(match.time as string),
@@ -41,14 +41,14 @@ const getDuration = (bestOf: number | null): ics.DurationObject => {
 	return { minutes: (bestOf - 1) * 25 || 25 };
 };
 
-const getTitle = (match: Match) => {
+const getTitle = (match: SC2Match) => {
 	const featured = match.featured ? '✪ ' : '';
 	return `${featured}${match.teamLeft?.name ?? 'TBD'} vs. ${match.teamRight?.name ?? 'TBD'} | ${
 		match.tournament?.name ?? ''
 	}`;
 };
 
-const getDescription = (match: Match) => {
+const getDescription = (match: SC2Match) => {
 	const streams =
 		match.streams.length > 0 ? `Streams: ${match.streams.map((s) => s.link).join('\n ')}` : '';
 	const tournament = match.tournament?.link ? `\r\nMore info: ${match.tournament.link}` : '';
@@ -57,7 +57,7 @@ const getDescription = (match: Match) => {
 	)}\nTournament: ${match.tournament?.name ?? '-unknown-'}\n${streams}${tournament}`;
 };
 
-const getDescriptionTeam = (team: MatchTeam | null) => {
+const getDescriptionTeam = (team: SC2MatchTeam | null) => {
 	if (!team) {
 		return 'TBD';
 	}
@@ -68,7 +68,7 @@ const getDescriptionTeam = (team: MatchTeam | null) => {
 	return `${prefixString}${team.name}`;
 };
 
-const getHtmlDesription = (match: Match) => {
+const getHtmlDesription = (match: SC2Match) => {
 	let html = '<!DOCTYPE html><html><body>';
 	html += `Match: ${getHtmlDescriptionTeam(match.teamLeft)} vs. ${getHtmlDescriptionTeam(
 		match.teamRight,
@@ -85,7 +85,7 @@ const getHtmlDesription = (match: Match) => {
 	return html;
 };
 
-const getHtmlDescriptionTeam = (team: MatchTeam | null) => {
+const getHtmlDescriptionTeam = (team: SC2MatchTeam | null) => {
 	if (!team) {
 		return '<em>TBD</em>';
 	}
@@ -97,7 +97,7 @@ const getHtmlDescriptionTeam = (team: MatchTeam | null) => {
 	return `${prefixString}<strong>${team.name}</strong>`;
 };
 
-const getCategories = (match: Match) => {
+const getCategories = (match: SC2Match) => {
 	const races =
 		match.teamLeft?.race && match.teamLeft?.race === match.teamRight?.race
 			? [match.teamLeft.race ?? '']
