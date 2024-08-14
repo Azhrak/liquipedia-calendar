@@ -1,343 +1,138 @@
+import { MatchStream } from '@/@types/common';
+import { simpleHash } from '../../utils/utils';
+import { StormgateMatch, StormgateMatchTeam } from '@/@types/stormgate';
+import { config } from '@/config';
+import * as cheerio from 'cheerio';
 import { DateTime } from 'luxon';
-import { findMatches, simpleHash } from '../../utils/utils';
-import { config } from '../../config';
-import { StormgateMatch, StormgateMatchStream } from '@/@types/stormgate';
-
-type SearchDirection = 'asc' | 'desc';
-
-type GetValueRowOptions = {
-	startIndex?: number;
-	direction?: SearchDirection;
-	stopString?: string;
-	directMatch?: boolean;
-	rowCount?: number;
-};
+import { format } from 'path';
 
 export class MatchParserStormgate {
-	parseMatches = (data: string[]) => {
-		const split = this.splitMatches(data);
-		const matches = split.map(this.getMatchValues);
-		const uniqueMatches = matches.filter(
-			(match, i) =>
-				match &&
-				!matches.find((duplicate, j) => duplicate && match.hash === duplicate.hash && i < j),
-		);
-		return (uniqueMatches as StormgateMatch[]).sort((a, b) => {
+	parseMatches = (data: string) => {
+		const $ = cheerio.load(data);
+		const $htmlMatches = $('table.infobox_matches_content');
+		const matches: StormgateMatch[] = [];
+		$htmlMatches.each((_index, element) => {
+			const match = this.getMatchValues($(element), $);
+			if (match) {
+				matches.push(match);
+			}
+		});
+		return matches.sort((a, b) => {
 			return new Date(a.time ?? '') > new Date(b.time ?? '') ? 1 : -1;
 		});
 	};
 
-	private splitMatches = (data: string[]) => {
-		const matches: string[][] = [];
-		let matchIndex = -1;
-		let rowIndex = 0;
-		for (let index = 0; index < data.length; index++) {
-			if (data[index].indexOf('infobox_matches_content') > -1) {
-				matches[++matchIndex] = [];
-				rowIndex = 0;
-			}
-			if (matchIndex > -1) {
-				matches[matchIndex][rowIndex++] = data[index];
-			}
-		}
-		return matches;
-	};
+	private getMatchValues = ($match: cheerio.Cheerio, $: cheerio.Root): StormgateMatch | null => {
+		const $teamLeft = $match.find('.team-left');
+		const teamLeft: StormgateMatchTeam = this.parseTeam($teamLeft);
 
-	private getMatchValues = (match: string[]): StormgateMatch | null => {
-		const isTeam = this.findValueIndex(match, 'team-template-text') > -1;
+		const $teamRight = $match.find('.team-right');
+		const teamRight: StormgateMatchTeam = this.parseTeam($teamRight);
 
-		const {
-			teamLeftName,
-			teamLeftFaction,
-			teamLeftCountry,
-			teamRightName,
-			teamRightFaction,
-			teamRightCountry,
-		} = isTeam ? this.getTeamRowValues(match) : this.getSoloRowValues(match);
+		const $versus = $match.find('.versus');
+		const info = this.parseVersus($versus);
+		teamLeft.score = info.score[0] ?? null;
+		teamRight.score = info.score[1] ?? null;
 
-		const [timeAndStreams] = this.getValueRow(match, ['match-countdown']);
-		const timeExists = timeAndStreams && timeAndStreams.indexOf('data-timestamp') > -1;
+		const $filler = $match.find('.match-filler');
+		const info2 = this.parseFiller($filler, $);
 
-		if ((!teamLeftName && !teamRightName) || !timeExists) {
-			return null;
-		}
-
-		const [bestOf] = this.getValueRow(match, ['Best of ']);
-		const [tournament] = this.getValueRow(match, ['tournament-text']);
-		const [featured] = this.getValueRow(match, ['tournament-highlighted'], {
-			directMatch: true,
-		});
-		const [scoreLeft, scoreRight] = this.getValueRow(match, ['line-height:1.1'], {
-			rowCount: 2,
-		});
-
-		const values = this.formatMatchValues(
-			{
-				teamLeftName,
-				teamLeftFaction,
-				teamLeftCountry,
-				teamRightName,
-				teamRightFaction,
-				teamRightCountry,
-				bestOf,
-				tournament,
-				timeAndStreams,
-				featured,
-				scoreLeft,
-				scoreRight,
-			},
-			isTeam,
-		);
+		const values = {
+			teamLeft,
+			teamRight,
+			bestOf: info.bestOf ? parseInt(info.bestOf, 10) : null,
+			tournament: info2.tournament,
+			featured: false, // TODO: implement featured
+			streams: [],
+			time: info2.time,
+		};
 
 		return { ...values, hash: this.getMatchHash(values) };
 	};
 
-	private getMatchHash = (match: StormgateMatch) => {
-		return simpleHash(
+	private getMatchHash = (match: StormgateMatch) =>
+		simpleHash(
 			`${match.teamLeft?.name ?? ''}
-     ${match.teamRight?.name ?? ''}
-     ${match.bestOf ?? ''}
-     ${match.time ?? ''}`,
+     		${match.teamRight?.name ?? ''}
+     		${match.bestOf ?? ''}
+     		${match.time ?? ''}`,
 		);
-	};
 
-	private getSoloRowValues = (match: string[]) => {
-		const teamLeftCells = match.slice(
-			match.findIndex((m) => m.indexOf('class="team-left') > -1),
-			match.findIndex((m) => m.indexOf('class="versus') > -1),
-		);
-		let [name] = this.getValueRow(teamLeftCells, ['starcraft-inline-player']); // NOTE: this class is indeed "starcraft" and not stormgate yet
-		const teamLeftName = name === 'TBD' ? null : name;
-		const [teamLeftFaction, teamLeftCountry] = (() => {
-			if (!teamLeftName) {
-				return [null, null];
-			}
-			return [
-				this.getValueRow(teamLeftCells, ['race icon'], {
-					directMatch: true,
-				}).shift(),
-				this.getValueRow(teamLeftCells, ['flag']).shift(),
-			];
+	private parseTeam = ($team: cheerio.Cheerio) => {
+		const $name = $team.find('a');
+		const name = $name.text();
+		const link = $name.attr('href') ?? null;
+		const $flag = $team.find('.flag > img');
+		const countryName = $flag.attr('alt');
+		const country = (() => {
+			const m = $flag?.attr('src')?.match(/\/([a-z]{2})_hd\.png/i);
+			return m ? m[1].toLowerCase() : null;
 		})();
-
-		const teamRightCells = match.slice(
-			match.findIndex((m) => m.indexOf('class="team-right') > -1),
-			match.findIndex((m) => m.indexOf('class="match-countdown') > -1),
-		);
-		[name] = this.getValueRow(teamRightCells, ['race icon']);
-		const teamRightName = name === 'TBD' ? null : name;
-		const [teamRightFaction, teamRightCountry] = (() => {
-			if (!teamRightName) {
-				return [null, null];
-			}
-			return [
-				this.getValueRow(teamRightCells, ['race icon'], {
-					directMatch: true,
-				}).shift(),
-				this.getValueRow(teamRightCells, ['flag']).shift(),
-			];
+		const faction = (() => {
+			const m = $team
+				.find('img[src*="Stormgate"]')
+				?.attr('src')
+				?.match(/(infernal_host|human_vanguard|celestial_armada)/i);
+			return m ? m[1].toLowerCase() : null;
 		})();
 
 		return {
-			teamLeftName,
-			teamLeftFaction,
-			teamLeftCountry,
-			teamRightName,
-			teamRightFaction,
-			teamRightCountry,
+			name,
+			link: link ? `${config.liquipediaUrl}${link}` : null,
+			faction: this.formatFaction(faction),
+			country,
+			countryName,
+			score: null,
 		};
 	};
 
-	private getTeamRowValues = (match: string[]) => {
-		let [name] = this.getValueRow(match, ['team-left', 'team-template-text']);
-		const teamLeftName = name === 'TBD' ? null : name;
+	private formatFaction = (faction: string | null) => {
+		if (faction === 'infernal_host') {
+			return 'infernal';
+		}
+		if (faction === 'human_vanguard') {
+			return 'vanguard';
+		}
+		if (faction === 'celestial_armada') {
+			return 'celestial';
+		}
+		return null;
+	};
 
-		[name] = this.getValueRow(match, ['team-right', 'team-template-text']);
-		const teamRightName = name === 'TBD' ? null : name;
+	private parseVersus = ($info: cheerio.Cheerio) => {
+		const score = $info.find('.versus-upper').text();
+		const bestOf = $info.find('.versus-lower > abbr').text().toLowerCase().replace('bo', '');
 
 		return {
-			teamLeftName,
-			teamLeftFaction: null,
-			teamLeftCountry: null,
-			teamRightName,
-			teamRightFaction: null,
-			teamRightCountry: null,
+			score: score.split(':'),
+			bestOf,
 		};
 	};
 
-	private formatMatchValues = (match: any, isTeam: boolean): StormgateMatch => ({
-		teamLeft: this.parseTeam(
-			match.teamLeftName,
-			match.teamLeftCountry,
-			match.teamLeftFaction,
-			match.scoreLeft,
-			isTeam,
-		),
-		teamRight: this.parseTeam(
-			match.teamRightName,
-			match.teamRightCountry,
-			match.teamRightFaction,
-			match.scoreRight,
-			isTeam,
-		),
-		bestOf: match.bestOf ? parseInt(match.bestOf.replace('Bo', '')) : null,
-		tournament: this.parseTournament(match.tournament),
-		featured: !!match.featured,
-		...this.formatTimeAndStreamValues(match.timeAndStreams),
-	});
-
-	private parseTeam = (
-		name: string,
-		country: string,
-		faction: string,
-		score: string,
-		isTeam: boolean,
-	) => {
-		const linkName = this.parseValue(name, /\[\[([^\|]+)/);
-		const pName = this.parseValue(name, /\|([^\]]+)\]\]/);
-		if (!pName || !linkName) {
-			return null;
-		}
-		const pCountry = this.parseValue(country, /File:(\w\w)_/);
-		const pFaction = this.parseValue(faction, /File:(\w+) race/)?.toLowerCase() ?? null;
-		const pScore = this.parseValue(country, /^:?(\d+)/);
-		return {
-			name: isTeam ? linkName : pName,
-			country: pCountry,
-			faction: pFaction,
-			link: linkName ? `${config.sgWikiRootUrl}/${linkName.replaceAll(' ', '_')}` : null,
-			score: pScore,
+	private parseFiller = ($data: cheerio.Cheerio, $: cheerio.Root) => {
+		const time = $data.find('.match-countdown > .timer-object').attr('data-timestamp');
+		const $tournament = $data.find('.tournament-text-flex > a');
+		const tournament = {
+			name: $tournament.text(),
+			link: `${config.liquipediaUrl}${$tournament.attr('href')}`,
 		};
-	};
-
-	private parseTournament = (tournament: string) => {
-		const match = tournament?.match(/\[\[([^|]+)\|([^\]]+)/);
-		return match
-			? {
-					link: `${config.sgWikiRootUrl}/${match[1]}`,
-					name: match[2],
-			  }
-			: null;
-	};
-
-	private parseValue = (value: string | null, regex: RegExp) => {
-		const match = value?.match(regex);
-		return match ? match[1] : null;
-	};
-
-	private formatTimeAndStreamValues = (timeAndStreams: string | null) => {
-		let time = null;
-		let streams: StormgateMatchStream[] = [];
-		if (!timeAndStreams) {
-			return { time, streams };
-		}
-		const timeMatch = timeAndStreams?.match(/data-timestamp="(\d+)"/);
-		if (timeMatch) {
-			time = DateTime.fromSeconds(parseInt(timeMatch[1])).toISO();
-		}
-		const streamMatches = findMatches(/data-stream-(\w+)="([^"]+)"/g, timeAndStreams);
-		if (streamMatches.length > 0) {
-			for (let index = 0; index < streamMatches.length; index++) {
-				const element = streamMatches[index];
+		const $streams = $data.find('.match-countdown > a[href*="/Special:Stream/"]');
+		const streams: MatchStream[] = [];
+		$streams.each((_index, element) => {
+			const $stream = $(element);
+			const match = $stream.attr('href')?.match(/\/Special:Stream\/([^/]+)\/([^/]+)/);
+			if (match) {
 				streams.push({
-					provider: element[1],
-					channel: element[2],
-					link: `${config.sgWikiRootUrl}/Special:Stream/${element[1]}/${element[2]}`,
+					provider: match[1],
+					channel: match[2],
+					link: `${config.liquipediaUrl}${$stream.attr('href')}`,
 				});
 			}
-		}
-
-		return { time, streams };
-	};
-
-	private getValueRow = (
-		data: string[],
-		searchStrings: string[],
-		options: GetValueRowOptions = {
-			startIndex: -1,
-			direction: 'asc',
-			rowCount: 1,
-		},
-	): string[] | null[] => {
-		if (searchStrings.length > 1) {
-			// Multiple strings used: find the first element, and continue from there with the rest
-			const [firstStr, ...rest] = searchStrings;
-			const index = this.findValueIndex(
-				data,
-				firstStr,
-				options.direction,
-				options.stopString,
-				options.startIndex,
-			);
-			if (index > -1) {
-				return this.getValueRow(data, rest, {
-					startIndex: index,
-					direction: options.direction,
-					stopString: options.stopString,
-					directMatch: options.directMatch,
-					rowCount: options.rowCount,
-				});
-			}
-
-			return [null];
-		}
-
-		const rows = this.getRowSlice(data, options.startIndex ?? 0, options.direction);
-
-		const alternateStrings = searchStrings[0].split(' || ');
-		for (let j = 0; j < alternateStrings.length; j++) {
-			const searchString = alternateStrings[j];
-			const index = this.findValueIndex(rows, searchString, options.direction, options.stopString);
-			if (index > -1 && index < rows.length) {
-				const order = options.direction === 'desc' ? -1 : 1;
-				const returnRows = [];
-				for (let k = 1; k <= (options.rowCount ?? 1); k++) {
-					const multiply = options.directMatch ? k - 1 : k;
-					returnRows.push(rows[index + multiply * order]);
-				}
-				return returnRows;
-			}
-		}
-
-		return [null];
-	};
-
-	private getRowSlice = (
-		data: string[],
-		startIndex: number,
-		direction: SearchDirection = 'asc',
-	) => {
-		const start = direction === 'desc' || startIndex < 0 ? 0 : startIndex;
-		const end = direction === 'desc' ? startIndex : data.length;
-		return data.slice(start, end);
-	};
-
-	private findValueIndex = (
-		rows: string[],
-		searchString: string,
-		direction: SearchDirection = 'asc',
-		stopString?: string,
-		startIndex: number = 0,
-	) => {
-		const start = startIndex < 0 ? 0 : startIndex;
-		for (let index = start; index < rows.length; index++) {
-			const i = direction === 'desc' ? rows.length - 1 - index : index;
-			if (this.matchingFunc(rows[i], searchString)) {
-				return i;
-			} else if (stopString && this.matchingFunc(rows[i], stopString)) {
-				return -1;
-			}
-		}
-
-		return -1;
-	};
-
-	private matchingFunc = (haystack: string, searchString: string) => {
-		if (searchString.startsWith('/') && searchString.endsWith('/')) {
-			const regex = searchString.substring(1, searchString.length - 1);
-			const match = haystack.match(new RegExp(regex, 'i'));
-			return match && match.length > 0;
-		}
-		return haystack.indexOf(searchString) > -1;
+		});
+		return {
+			time: time ? DateTime.fromSeconds(parseInt(time)).toISO() : null,
+			tournament,
+			streams,
+		};
 	};
 }

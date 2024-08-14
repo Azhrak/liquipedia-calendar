@@ -1,3 +1,4 @@
+import { GameTabs } from '@/components/GameTabs';
 import { Header } from '@/components/Header';
 import { Links } from '@/components/Links';
 import { MainContainer } from '@/components/MainContainer';
@@ -12,6 +13,8 @@ export default function Stormgate() {
 	return (
 		<MainContainer>
 			<Header />
+
+			<GameTabs />
 
 			<FiltersProvider>
 				<div className="border-2 border-pink-300 p-4">

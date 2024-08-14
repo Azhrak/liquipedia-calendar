@@ -3,7 +3,6 @@ import { filterStormgateMatches } from '@/liquipedia/stormgate/filter-matches';
 
 export async function getMatches(request: Request) {
 	const matches = await extractStormgateMatches();
-	return [];
 	const { searchParams } = new URL(request.url);
 	const filtered = filterStormgateMatches(matches, {
 		player: searchParams.get('player'),

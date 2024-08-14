@@ -13,26 +13,29 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"cheerio": "^1.0.0",
 		"ics": "^3.7.6",
 		"luxon": "^3.5.0",
-		"next": "14.0.1",
+		"next": "14.2.5",
 		"qs": "^6.13.0",
 		"react": "^18.3.1",
-		"react-dom": "^18.3.1"
+		"react-dom": "^18.3.1",
+		"tailwind-merge": "^2.5.2"
 	},
 	"devDependencies": {
+		"@types/cheerio": "^0.22.35",
 		"@types/luxon": "^3.4.2",
-		"@types/node": "^20.14.15",
+		"@types/node": "^22.3.0",
 		"@types/qs": "^6.9.15",
 		"@types/react": "^18.3.3",
 		"@types/react-dom": "^18.3.0",
 		"autoprefixer": "^10.4.20",
 		"eslint": "^8.57.0",
-		"eslint-config-next": "14.0.1",
+		"eslint-config-next": "14.2.5",
 		"postcss": "^8.4.41",
-		"prettier-plugin-tailwindcss": "^0.5.14",
-		"tailwindcss": "^3.4.9",
-		"tsx": "^3.14.0",
+		"prettier-plugin-tailwindcss": "^0.6.6",
+		"tailwindcss": "^3.4.10",
+		"tsx": "^4.17.0",
 		"typescript": "^5.5.4"
 	}
 }
