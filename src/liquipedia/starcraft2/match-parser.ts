@@ -55,7 +55,7 @@ export class MatchParserStarCraft2 {
 			teamRightCountry,
 		} = isTeam ? this.getTeamRowValues(match) : this.getSoloRowValues(match);
 
-		const [timeAndStreams] = this.getValueRow(match, ['match-countdown']);
+		const [timeAndStreams] = this.getValueRow(match, ['/match-countdown[^-]/']);
 		const timeExists = timeAndStreams && timeAndStreams.indexOf('data-timestamp') > -1;
 
 		if ((!teamLeftName && !teamRightName) || !timeExists) {
@@ -216,7 +216,7 @@ export class MatchParserStarCraft2 {
 			? {
 					link: `${config.sc2WikiRootUrl}/${match[1]}`,
 					name: match[2],
-			  }
+				}
 			: null;
 	};
 
@@ -250,6 +250,13 @@ export class MatchParserStarCraft2 {
 		return { time, streams };
 	};
 
+	/**
+	 * Find rows from the wikitext array, by default the row after the matching search string
+	 * @param data Wikitext array strings
+	 * @param searchStrings Array of strings to search for with indexOf or with regex (use /string/)
+	 * @param options
+	 * @returns
+	 */
 	private getValueRow = (
 		data: string[],
 		searchStrings: string[],
