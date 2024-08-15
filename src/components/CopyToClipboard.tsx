@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 export const CopyToClipboard = (props: { text: string; prependUrl?: boolean }) => {
 	const handleClick = () => {
-		const url = props.prependUrl ? removeTrailingSlash(window.location.href) : '';
+		const url = props.prependUrl ? removeTrailingSlash(window.location.origin) : '';
 		navigator.clipboard.writeText(url + props.text);
 	};
 

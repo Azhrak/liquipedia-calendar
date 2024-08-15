@@ -1,6 +1,6 @@
 'use client';
 
-import { FilterParams } from '@/liquipedia/starcraft2/filter-matches';
+import { FilterParams } from '@/@types/common';
 import { ReactNode, createContext, useContext, useReducer } from 'react';
 
 type State = FilterParams;
@@ -12,6 +12,7 @@ type Context = {
 	state: State;
 	filterPlayer: (v: string) => void;
 	filterRace: (v: string) => void;
+	filterFaction: (v: string) => void;
 	filterCountry: (v: string) => void;
 	filterTournament: (v: string) => void;
 	filterFeatured: (v: string) => void;
@@ -22,6 +23,7 @@ const defaultContext: Context = {
 	state: {},
 	filterPlayer: () => {},
 	filterRace: () => {},
+	filterFaction: () => {},
 	filterCountry: () => {},
 	filterTournament: () => {},
 	filterFeatured: () => {},
@@ -40,6 +42,8 @@ function filtersReducer(state: State, action: Action) {
 			return { ...state, player: payload };
 		case 'race':
 			return { ...state, race: payload };
+		case 'faction':
+			return { ...state, faction: payload };
 		case 'country':
 			return { ...state, country: payload };
 		case 'tournament':
@@ -70,6 +74,13 @@ export const FiltersProvider = ({ children }: { children: ReactNode }) => {
 		});
 	};
 
+	const filterFaction = (value: string) => {
+		dispatch({
+			type: 'faction',
+			payload: value,
+		});
+	};
+
 	const filterCountry = (value: string) => {
 		dispatch({
 			type: 'country',
@@ -85,7 +96,6 @@ export const FiltersProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const filterFeatured = (value: string) => {
-		console.log(value);
 		dispatch({
 			type: 'featured',
 			payload: value,
@@ -103,6 +113,7 @@ export const FiltersProvider = ({ children }: { children: ReactNode }) => {
 		state,
 		filterPlayer,
 		filterRace,
+		filterFaction,
 		filterCountry,
 		filterTournament,
 		filterFeatured,

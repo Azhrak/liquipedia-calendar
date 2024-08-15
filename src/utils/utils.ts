@@ -36,3 +36,10 @@ export const findMatches = (regex: RegExp, str: string, matches: RegExpExecArray
 export function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
 	return value !== null && value !== undefined;
 }
+
+export const minutes = (value: number) => value * 60000;
+export const minutesInSeconds = (value: number) => value * 60;
+export const hours = (value: number) => value * 3600000;
+export const hoursInSeconds = (value: number) => value * 3600;
+export const days = (value: number) => value * 86400000;
+export const daysInSeconds = (value: number) => value * 86400;

@@ -13,26 +13,29 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
-		"ics": "^3.5.0",
-		"luxon": "^3.4.3",
-		"next": "14.0.1",
-		"qs": "^6.11.2",
-		"react": "^18",
-		"react-dom": "^18"
+		"cheerio": "^1.0.0",
+		"ics": "^3.7.6",
+		"luxon": "^3.5.0",
+		"next": "14.2.5",
+		"qs": "^6.13.0",
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1",
+		"tailwind-merge": "^2.5.2"
 	},
 	"devDependencies": {
-		"@types/luxon": "^3.3.3",
-		"@types/node": "^20",
-		"@types/qs": "^6.9.9",
-		"@types/react": "^18",
-		"@types/react-dom": "^18",
-		"autoprefixer": "^10.0.1",
-		"eslint": "^8",
-		"eslint-config-next": "14.0.1",
-		"postcss": "^8",
-		"prettier-plugin-tailwindcss": "^0.5.6",
-		"tailwindcss": "^3.3.0",
-		"tsx": "^3.14.0",
-		"typescript": "^5"
+		"@types/cheerio": "^0.22.35",
+		"@types/luxon": "^3.4.2",
+		"@types/node": "^22.3.0",
+		"@types/qs": "^6.9.15",
+		"@types/react": "^18.3.3",
+		"@types/react-dom": "^18.3.0",
+		"autoprefixer": "^10.4.20",
+		"eslint": "^8.57.0",
+		"eslint-config-next": "14.2.5",
+		"postcss": "^8.4.41",
+		"prettier-plugin-tailwindcss": "^0.6.6",
+		"tailwindcss": "^3.4.10",
+		"tsx": "^4.17.0",
+		"typescript": "^5.5.4"
 	}
 }

@@ -4,11 +4,11 @@ import { Links } from '@/components/Links';
 import { MainContainer } from '@/components/MainContainer';
 import { FiltersProvider } from '@/components/providers/FiltersProvider';
 import { Sources } from '@/components/Sources';
-import { StarCraft2Filters } from '@/components/StarCraft2Filters';
+import { StormgateFilters } from '@/components/StormgateFilters';
 
-export default function Home() {
-	const icalUrl = '/get/starcraft2/ical';
-	const jsonUrl = '/get/starcraft2/json';
+export default function Stormgate() {
+	const icalUrl = '/get/stormgate/ical';
+	const jsonUrl = '/get/stormgate/json';
 
 	return (
 		<MainContainer>
@@ -18,7 +18,7 @@ export default function Home() {
 
 			<FiltersProvider>
 				<div className="border-2 border-pink-300 p-4">
-					<StarCraft2Filters />
+					<StormgateFilters />
 				</div>
 
 				<Links icalUrl={icalUrl} jsonUrl={jsonUrl} />
