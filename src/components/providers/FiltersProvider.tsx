@@ -96,7 +96,6 @@ export const FiltersProvider = ({ children }: { children: ReactNode }) => {
 	};
 
 	const filterFeatured = (value: string) => {
-		console.log(value);
 		dispatch({
 			type: 'featured',
 			payload: value,

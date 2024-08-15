@@ -1,8 +1,8 @@
 import ics, { createEvents } from 'ics';
-import { SC2Match, SC2MatchTeam } from '../@types/starcraft';
 import { ucFirst } from '../utils/utils';
+import { CalendarMatch, CalendarMatchTeam } from '@/@types/calendar';
 
-export const createMatchEvents = (matches: SC2Match[]) => {
+export const createMatchEvents = (matches: CalendarMatch[]) => {
 	const { error, value } = createEvents(matches.map(matchToIcal));
 	if (error) {
 		console.error(error);
@@ -11,7 +11,7 @@ export const createMatchEvents = (matches: SC2Match[]) => {
 	return value;
 };
 
-const matchToIcal = (match: SC2Match): ics.EventAttributes => {
+const matchToIcal = (match: CalendarMatch): ics.EventAttributes => {
 	return {
 		calName: 'Liquipedia Match Calendar',
 		start: getTime(match.time as string),
@@ -41,14 +41,14 @@ const getDuration = (bestOf: number | null): ics.DurationObject => {
 	return { minutes: (bestOf - 1) * 25 || 25 };
 };
 
-const getTitle = (match: SC2Match) => {
+const getTitle = (match: CalendarMatch) => {
 	const featured = match.featured ? '✪ ' : '';
 	return `${featured}${match.teamLeft?.name ?? 'TBD'} vs. ${match.teamRight?.name ?? 'TBD'} | ${
 		match.tournament?.name ?? ''
 	}`;
 };
 
-const getDescription = (match: SC2Match) => {
+const getDescription = (match: CalendarMatch) => {
 	const streams =
 		match.streams.length > 0 ? `Streams: ${match.streams.map((s) => s.link).join('\n ')}` : '';
 	const tournament = match.tournament?.link ? `\r\nMore info: ${match.tournament.link}` : '';
@@ -57,18 +57,18 @@ const getDescription = (match: SC2Match) => {
 	)}\nTournament: ${match.tournament?.name ?? '-unknown-'}\n${streams}${tournament}`;
 };
 
-const getDescriptionTeam = (team: SC2MatchTeam | null) => {
+const getDescriptionTeam = (team: CalendarMatchTeam | null) => {
 	if (!team) {
 		return 'TBD';
 	}
 	const prefixes = [];
 	team.country && prefixes.push(team.country.toUpperCase());
-	team.race && prefixes.push(ucFirst(team.race));
+	team.category && prefixes.push(ucFirst(team.category));
 	const prefixString = prefixes.length > 0 ? `[${prefixes.join(' | ')}] ` : '';
 	return `${prefixString}${team.name}`;
 };
 
-const getHtmlDesription = (match: SC2Match) => {
+const getHtmlDesription = (match: CalendarMatch) => {
 	let html = '<!DOCTYPE html><html><body>';
 	html += `Match: ${getHtmlDescriptionTeam(match.teamLeft)} vs. ${getHtmlDescriptionTeam(
 		match.teamRight,
@@ -85,32 +85,32 @@ const getHtmlDesription = (match: SC2Match) => {
 	return html;
 };
 
-const getHtmlDescriptionTeam = (team: SC2MatchTeam | null) => {
+const getHtmlDescriptionTeam = (team: CalendarMatchTeam | null) => {
 	if (!team) {
 		return '<em>TBD</em>';
 	}
 	const prefixes = [];
 	team.country && prefixes.push(team.country.toUpperCase());
-	team.race && prefixes.push(ucFirst(team.race));
+	team.category && prefixes.push(ucFirst(team.category));
 	const prefixString =
 		prefixes.length > 0 ? `<span style="color: #999">[${prefixes.join(' | ')}]</span> ` : '';
 	return `${prefixString}<strong>${team.name}</strong>`;
 };
 
-const getCategories = (match: SC2Match) => {
-	const races =
-		match.teamLeft?.race && match.teamLeft?.race === match.teamRight?.race
-			? [match.teamLeft.race ?? '']
-			: [match.teamLeft?.race ?? '', match.teamRight?.race ?? ''];
+const getCategories = (match: CalendarMatch) => {
+	const categories =
+		match.teamLeft?.category && match.teamLeft?.category === match.teamRight?.category
+			? [match.teamLeft.category ?? '']
+			: [match.teamLeft?.category ?? '', match.teamRight?.category ?? ''];
 	const countries =
 		match.teamLeft?.country && match.teamLeft.country === match.teamRight?.country
 			? [match.teamLeft.country.toUpperCase()]
 			: [
 					match.teamLeft?.country?.toUpperCase() ?? '',
 					match.teamRight?.country?.toUpperCase() ?? '',
-			  ];
+				];
 	const players = [match.teamLeft?.name ?? '', match.teamRight?.name ?? ''];
-	return races
+	return categories
 		.concat(countries)
 		.concat(players)
 		.concat([match.tournament?.name ?? ''])
