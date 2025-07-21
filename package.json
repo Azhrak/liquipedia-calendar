@@ -1,45 +1,50 @@
 {
-  "name": "liquipedia-calendar",
-  "version": "0.1.0",
-  "private": true,
-  "author": {
-    "name": "Juho \"Azhrak\" Nieminen",
-    "email": "nieminen.juho@gmail.com"
-  },
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "cheerio": "^1.0.0",
-    "ics": "^3.7.6",
-    "luxon": "^3.5.0",
-    "next": "15.4.2",
-    "qs": "^6.13.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "tailwind-merge": "^2.5.2"
-  },
-  "devDependencies": {
-    "@types/cheerio": "^0.22.35",
-    "@types/luxon": "^3.4.2",
-    "@types/node": "^22.3.0",
-    "@types/qs": "^6.9.15",
-    "@types/react": "19.1.8",
-    "@types/react-dom": "19.1.6",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^8.57.0",
-    "eslint-config-next": "15.4.2",
-    "postcss": "^8.4.41",
-    "prettier-plugin-tailwindcss": "^0.6.6",
-    "tailwindcss": "^3.4.10",
-    "tsx": "^4.17.0",
-    "typescript": "^5.5.4"
-  },
-  "overrides": {
-    "@types/react": "19.1.8",
-    "@types/react-dom": "19.1.6"
-  }
+	"name": "liquipedia-calendar",
+	"version": "0.1.0",
+	"private": true,
+	"author": {
+		"name": "Juho \"Azhrak\" Nieminen",
+		"email": "nieminen.juho@gmail.com"
+	},
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"scripts": {
+		"dev": "next dev --turbopack",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"cheerio": "^1.0.0",
+		"ics": "^3.7.6",
+		"luxon": "^3.5.0",
+		"next": "15.4.2",
+		"qs": "^6.13.0",
+		"react": "19.1.0",
+		"react-dom": "19.1.0",
+		"tailwind-merge": "^2.5.2"
+	},
+	"devDependencies": {
+		"@types/cheerio": "^0.22.35",
+		"@types/luxon": "^3.4.2",
+		"@types/node": "^22.3.0",
+		"@types/qs": "^6.9.15",
+		"@types/react": "19.1.8",
+		"@types/react-dom": "19.1.6",
+		"@typescript-eslint/eslint-plugin": "^8.37.0",
+		"@typescript-eslint/parser": "^8.37.0",
+		"autoprefixer": "^10.4.20",
+		"eslint": "^8.57.0",
+		"eslint-config-next": "15.4.2",
+		"postcss": "^8.4.41",
+		"prettier-plugin-tailwindcss": "^0.6.6",
+		"tailwindcss": "^3.4.10",
+		"tsx": "^4.17.0",
+		"typescript": "^5.5.4"
+	},
+	"overrides": {
+		"@types/react": "19.1.8",
+		"@types/react-dom": "19.1.6"
+	}
 }
