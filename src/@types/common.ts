@@ -11,7 +11,7 @@ export type MatchStream = {
 
 export type FilterParams = {
 	player?: string | null
-	race?: string[] | null
+	race?: string | string[] | null
 	faction?: string | null
 	country?: string | null
 	tournament?: string | null

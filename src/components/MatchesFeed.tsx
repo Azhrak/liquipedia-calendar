@@ -30,7 +30,7 @@ export function MatchesFeed() {
 	} = useFilters()
 
 	const player = state.player ?? ''
-	const race = state.race ?? []
+	const race = Array.isArray(state.race) ? state.race : state.race ? [state.race] : []
 	const country = state.country ?? ''
 	const featured = (state.featured as FeaturedValue) ?? 'all'
 
