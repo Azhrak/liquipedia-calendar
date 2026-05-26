@@ -100,7 +100,10 @@ function parseRow($: cheerio.CheerioAPI, el: AnyNode): SC2Tournament | null {
 			)
 		})
 		.first()
-	const location = locationTd.text().trim() || null
+	const city = locationTd.text().trim() || null
+	const country = locationTd.find('.flag img').first().attr('alt') ?? null
+	const location =
+		city && country && city !== country ? `${city}, ${country}` : city ?? country ?? null
 
 	const tournament: SC2Tournament = {
 		name,
