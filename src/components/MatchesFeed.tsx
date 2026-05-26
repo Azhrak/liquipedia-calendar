@@ -20,21 +20,17 @@ type FeaturedValue = 'all' | 'yes' | 'no'
  * Must be rendered inside a `<FiltersProvider>` (see page.tsx).
  */
 export function MatchesFeed() {
-	const {
-		state,
-		filterPlayer,
-		filterRace,
-		filterCountry,
-		filterFeatured,
-		clearFilters,
-	} = useFilters()
+	const { state, filterPlayer, filterRace, filterCountry, filterFeatured, clearFilters } =
+		useFilters()
 
 	const player = state.player ?? ''
 	const race = Array.isArray(state.race) ? state.race : state.race ? [state.race] : []
 	const country = state.country ?? ''
 	const featured = (state.featured as FeaturedValue) ?? 'all'
 
-	const hasFilters = Boolean(player || race.length > 0 || country || (featured && featured !== 'all'))
+	const hasFilters = Boolean(
+		player || race.length > 0 || country || (featured && featured !== 'all'),
+	)
 
 	const urlState = useMemo(
 		() => ({

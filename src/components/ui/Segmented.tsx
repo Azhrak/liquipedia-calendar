@@ -20,9 +20,7 @@ export function Segmented<T extends string>({ value, onChange, options }: Props<
 						onClick={() => onChange(o.value)}
 						className={[
 							'px-3 py-1.5 text-xs font-medium rounded-[5px] transition-colors',
-							active
-								? 'bg-ink-700 text-white shadow-sm'
-								: 'text-ink-500 hover:text-ink-300',
+							active ? 'bg-ink-700 text-white shadow-sm' : 'text-ink-500 hover:text-ink-300',
 						].join(' ')}
 					>
 						{o.label}

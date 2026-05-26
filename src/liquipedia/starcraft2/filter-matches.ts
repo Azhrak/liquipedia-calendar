@@ -13,12 +13,12 @@ export const filterStarCraft2Matches = (matches: SC2Match[], params: FilterParam
 		? raceParam.map((r) => r.toLowerCase().slice(0, 16))
 		: raceParam
 			? raceParam
-				.toString()
-				.toLowerCase()
-				.slice(0, 64)
-				.split(',')
-				.map((r) => r.trim())
-				.filter(Boolean)
+					.toString()
+					.toLowerCase()
+					.slice(0, 64)
+					.split(',')
+					.map((r) => r.trim())
+					.filter(Boolean)
 			: []
 	const country = params.country?.toLowerCase().slice(0, 3)
 	const tournament = params.tournament

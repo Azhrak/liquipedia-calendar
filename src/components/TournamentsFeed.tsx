@@ -23,10 +23,7 @@ export function TournamentsFeed() {
 
 	const hasFilters = tiers.length > 0 && tiers.length < ALL_TIERS.length
 
-	const filterTiers = useMemo(
-		() => (tiers.length === ALL_TIERS.length ? [] : tiers),
-		[tiers],
-	)
+	const filterTiers = useMemo(() => (tiers.length === ALL_TIERS.length ? [] : tiers), [tiers])
 
 	const icalUrl = useMemo(() => buildTournamentUrl(ICAL_PATH, filterTiers), [filterTiers])
 	const jsonUrl = useMemo(() => buildTournamentUrl(JSON_PATH, filterTiers), [filterTiers])

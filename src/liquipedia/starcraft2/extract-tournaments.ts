@@ -94,16 +94,13 @@ function parseRow($: cheerio.CheerioAPI, el: AnyNode): SC2Tournament | null {
 	const locationTd = $el
 		.find('td')
 		.filter((_, td) => {
-			return (
-				$(td).find('.flag').length > 0 &&
-				$(td).find('.league-icon-small-image').length === 0
-			)
+			return $(td).find('.flag').length > 0 && $(td).find('.league-icon-small-image').length === 0
 		})
 		.first()
 	const city = locationTd.text().trim() || null
 	const country = locationTd.find('.flag img').first().attr('alt') ?? null
 	const location =
-		city && country && city !== country ? `${city}, ${country}` : city ?? country ?? null
+		city && country && city !== country ? `${city}, ${country}` : (city ?? country ?? null)
 
 	const tournament: SC2Tournament = {
 		name,
