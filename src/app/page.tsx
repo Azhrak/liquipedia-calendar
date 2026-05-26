@@ -4,6 +4,7 @@ import { MainContainer } from '@/components/MainContainer'
 import { FiltersProvider } from '@/components/providers/FiltersProvider'
 import { Sources } from '@/components/Sources'
 import { StarCraft2Filters } from '@/components/StarCraft2Filters'
+import { TournamentSection } from '@/components/TournamentSection'
 
 export default function Home() {
 	const icalUrl = '/get/starcraft2/ical'
@@ -20,6 +21,8 @@ export default function Home() {
 
 				<Links icalUrl={icalUrl} jsonUrl={jsonUrl} />
 			</FiltersProvider>
+
+			<TournamentSection />
 
 			<Sources />
 		</MainContainer>
