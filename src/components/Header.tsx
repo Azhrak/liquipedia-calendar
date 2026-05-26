@@ -13,9 +13,7 @@ export const Header = () => (
 				Syncing external calendars with Google Calendar is pain, so{' '}
 				<a href="https://github.com/derekantrican/GAS-ICS-Sync">this script</a> might help you.
 			</p>
-			<p className="text-sm">
-				Currently only supporting the StarCraft II Liquipedia.
-			</p>
+			<p className="text-sm">Currently only supporting the StarCraft II Liquipedia.</p>
 		</div>
 	</div>
 )

@@ -1,9 +1,10 @@
-import { cache } from 'react'
 import * as cheerio from 'cheerio'
 import { DateTime } from 'luxon'
+import { cache } from 'react'
 import { SC2Match, SC2MatchStream, SC2MatchTeam } from '@/@types/starcraft'
 
 type AnyNode = Exclude<Parameters<typeof cheerio.load>[0], string | Buffer | readonly unknown[]>
+
 import { config } from '@/config'
 import { fetchMatchTickerHtml } from '@/liquipedia/fetch-page'
 import { simpleHash } from '@/utils/utils'
@@ -14,11 +15,7 @@ function sc2Url(path: string): string {
 	return new URL(path, config.sc2WikiRootUrl).toString()
 }
 
-function parseTeam(
-	$: cheerio.CheerioAPI,
-	el: AnyNode,
-	score: string | null,
-): SC2MatchTeam | null {
+function parseTeam($: cheerio.CheerioAPI, el: AnyNode, score: string | null): SC2MatchTeam | null {
 	const $el = $(el)
 	const name = $el.find('.name').text().trim()
 	if (!name || name === 'TBD') return null
@@ -82,7 +79,8 @@ function parseMatch($: cheerio.CheerioAPI, el: AnyNode): SC2Match | null {
 	const bestOf = boMatch ? parseInt(boMatch[1] ?? boMatch[2]) : null
 
 	const tournamentAnchor = $el.find('.match-info-tournament-name a').first()
-	const tournamentName = tournamentAnchor.find('span').text().trim() || tournamentAnchor.text().trim() || null
+	const tournamentName =
+		tournamentAnchor.find('span').text().trim() || tournamentAnchor.text().trim() || null
 	const tournamentHref = tournamentAnchor.attr('href')
 	const tournamentLink = tournamentHref ? sc2Url(tournamentHref) : null
 

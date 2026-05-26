@@ -1,6 +1,6 @@
-import { cache } from 'react'
 import * as cheerio from 'cheerio'
 import { DateTime } from 'luxon'
+import { cache } from 'react'
 import { SC2Tournament } from '@/@types/starcraft'
 import { config } from '@/config'
 import { fetchWikiParsed } from '@/liquipedia/fetch-page'
@@ -58,10 +58,7 @@ function parseDateRange(raw: string): { startDate: string | null; endDate: strin
 	return { startDate, endDate: finalEndDate }
 }
 
-function parseRow(
-	$: cheerio.CheerioAPI,
-	el: AnyNode,
-): SC2Tournament | null {
+function parseRow($: cheerio.CheerioAPI, el: AnyNode): SC2Tournament | null {
 	const $el = $(el)
 
 	const tierRaw = $el.find('td').eq(0).text()
@@ -74,21 +71,35 @@ function parseRow(
 	const href = tournamentAnchor.attr('href')
 	const link = href ? sc2Url(href) : null
 
-	const dateRaw = $el.find('td').filter((_, td) => {
-		return $(td).find('a[href*="/"]').length === 0 && /[A-Za-z]{3}/.test($(td).text())
-	}).first().text()
+	const dateRaw = $el
+		.find('td')
+		.filter((_, td) => {
+			return $(td).find('a[href*="/"]').length === 0 && /[A-Za-z]{3}/.test($(td).text())
+		})
+		.first()
+		.text()
 	const { startDate, endDate } = parseDateRange(dateRaw)
 
-	const prizePoolRaw = $el.find('td').filter((_, td) => {
-		return $(td).text().trim().startsWith('$')
-	}).first().text().trim()
+	const prizePoolRaw = $el
+		.find('td')
+		.filter((_, td) => {
+			return $(td).text().trim().startsWith('$')
+		})
+		.first()
+		.text()
+		.trim()
 	const prizePool = prizePoolRaw || null
 
 	// Location: td with flag image
-	const locationTd = $el.find('td').filter((_, td) => {
-		return $(td).find('.flag, .flag-icon, img[alt]').length > 0 &&
-			!$(td).hasClass('column__tournament')
-	}).first()
+	const locationTd = $el
+		.find('td')
+		.filter((_, td) => {
+			return (
+				$(td).find('.flag, .flag-icon, img[alt]').length > 0 &&
+				!$(td).hasClass('column__tournament')
+			)
+		})
+		.first()
 	const location = locationTd.text().trim() || null
 
 	const tournament: SC2Tournament = {
