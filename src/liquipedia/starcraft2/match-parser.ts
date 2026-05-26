@@ -5,6 +5,21 @@ import { findMatches, simpleHash } from '../../utils/utils'
 
 type SearchDirection = 'asc' | 'desc'
 
+type RawMatchValues = {
+	teamLeftName: string | null
+	teamLeftRace: string | null | undefined
+	teamLeftCountry: string | null | undefined
+	teamRightName: string | null
+	teamRightRace: string | null | undefined
+	teamRightCountry: string | null | undefined
+	bestOf: string | null
+	tournament: string | null
+	timeAndStreams: string | null
+	featured: string | null
+	scoreLeft: string | null
+	scoreRight: string | null
+}
+
 type GetValueRowOptions = {
 	startIndex?: number
 	direction?: SearchDirection
@@ -165,7 +180,7 @@ export class MatchParserStarCraft2 {
 		}
 	}
 
-	private formatMatchValues = (match: any, isTeam: boolean): SC2Match => ({
+	private formatMatchValues = (match: RawMatchValues, isTeam: boolean): SC2Match => ({
 		teamLeft: this.parseTeam(
 			match.teamLeftName,
 			match.teamLeftCountry,
@@ -187,10 +202,10 @@ export class MatchParserStarCraft2 {
 	})
 
 	private parseTeam = (
-		name: string,
-		country: string,
-		race: string,
-		score: string,
+		name: string | null,
+		country: string | null | undefined,
+		race: string | null | undefined,
+		score: string | null,
 		isTeam: boolean,
 	) => {
 		const linkName = this.parseValue(name, /\[\[([^|]+)/)
@@ -210,7 +225,7 @@ export class MatchParserStarCraft2 {
 		}
 	}
 
-	private parseTournament = (tournament: string) => {
+	private parseTournament = (tournament: string | null) => {
 		const match = tournament?.match(/\[\[([^|]+)\|([^\]]+)/)
 		return match
 			? {
@@ -220,7 +235,7 @@ export class MatchParserStarCraft2 {
 			: null
 	}
 
-	private parseValue = (value: string | null, regex: RegExp) => {
+	private parseValue = (value: string | null | undefined, regex: RegExp) => {
 		const match = value?.match(regex)
 		return match ? match[1] : null
 	}

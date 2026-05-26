@@ -16,7 +16,7 @@ export const getFromFileCache = (file: string) => {
 	return null
 }
 
-export const setToFileCache = (file: string, data: any, plainText = false) => {
+export const setToFileCache = (file: string, data: unknown, plainText = false) => {
 	const cacheFile = `${config.fileCacheDir}/${file}`
-	fs.writeFileSync(cacheFile, plainText ? data : JSON.stringify(data, null, 2))
+	fs.writeFileSync(cacheFile, plainText ? String(data) : JSON.stringify(data, null, 2))
 }
