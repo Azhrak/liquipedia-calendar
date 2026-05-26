@@ -14,7 +14,7 @@ export const Header = () => (
 				<a href="https://github.com/derekantrican/GAS-ICS-Sync">this script</a> might help you.
 			</p>
 			<p className="text-sm">
-				Currently only supporting the StarCraft II and Stormgate Liquipedia.
+				Currently only supporting the StarCraft II Liquipedia.
 			</p>
 		</div>
 	</div>
