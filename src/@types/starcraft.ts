@@ -21,3 +21,14 @@ export type SC2MatchTeam = {
 
 export type SC2MatchTournament = MatchTournament
 export type SC2MatchStream = MatchStream
+
+export type SC2Tournament = {
+	hash?: string
+	name: string
+	link: string | null
+	tier: string | null
+	startDate: string | null
+	endDate: string | null
+	prizePool: string | null
+	location: string | null
+}

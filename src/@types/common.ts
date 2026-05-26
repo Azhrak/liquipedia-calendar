@@ -17,3 +17,7 @@ export type FilterParams = {
 	tournament?: string | null
 	featured?: string | null
 }
+
+export type TournamentFilterParams = {
+	tier?: string | null
+}
