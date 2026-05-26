@@ -90,13 +90,13 @@ function parseRow($: cheerio.CheerioAPI, el: AnyNode): SC2Tournament | null {
 		.trim()
 	const prizePool = prizePoolRaw || null
 
-	// Location: td with flag image
+	// Location: td with .flag span but not the league icon td
 	const locationTd = $el
 		.find('td')
 		.filter((_, td) => {
 			return (
-				$(td).find('.flag, .flag-icon, img[alt]').length > 0 &&
-				!$(td).hasClass('column__tournament')
+				$(td).find('.flag').length > 0 &&
+				$(td).find('.league-icon-small-image').length === 0
 			)
 		})
 		.first()
