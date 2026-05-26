@@ -22,7 +22,7 @@ export class MatchParserStormgate {
 		})
 	}
 
-	private getMatchValues = ($match: cheerio.Cheerio, $: cheerio.Root): StormgateMatch | null => {
+	private getMatchValues = ($match: ReturnType<cheerio.CheerioAPI>, $: cheerio.CheerioAPI): StormgateMatch | null => {
 		const $teamLeft = $match.find('.team-left')
 		const teamLeft: StormgateMatchTeam = this.parseTeam($teamLeft)
 
@@ -58,7 +58,7 @@ export class MatchParserStormgate {
      		${match.time ?? ''}`,
 		)
 
-	private parseTeam = ($team: cheerio.Cheerio) => {
+	private parseTeam = ($team: ReturnType<cheerio.CheerioAPI>) => {
 		const $name = $team.find('a')
 		const name = $name.text()
 		const link = $name.attr('href') ?? null
@@ -99,7 +99,7 @@ export class MatchParserStormgate {
 		return null
 	}
 
-	private parseVersus = ($info: cheerio.Cheerio) => {
+	private parseVersus = ($info: ReturnType<cheerio.CheerioAPI>) => {
 		const score = $info.find('.versus-upper').text()
 		const bestOf = $info.find('.versus-lower > abbr').text().toLowerCase().replace('bo', '')
 
@@ -109,7 +109,7 @@ export class MatchParserStormgate {
 		}
 	}
 
-	private parseFiller = ($data: cheerio.Cheerio, $: cheerio.Root) => {
+	private parseFiller = ($data: ReturnType<cheerio.CheerioAPI>, $: cheerio.CheerioAPI) => {
 		const time = $data.find('.match-countdown > .timer-object').attr('data-timestamp')
 		const $tournament = $data.find('.tournament-text-flex > a')
 		const tournament = {

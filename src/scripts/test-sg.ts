@@ -45,7 +45,7 @@ const main = () => {
 	return matches
 }
 
-const parseTeam = ($team: cheerio.Cheerio) => {
+const parseTeam = ($team: ReturnType<cheerio.CheerioAPI>) => {
 	const $name = $team.find('a')
 	const name = $name.text()
 	const link = $name.attr('href') ?? null
@@ -72,7 +72,7 @@ const parseTeam = ($team: cheerio.Cheerio) => {
 	}
 }
 
-const parseVersus = ($info: cheerio.Cheerio) => {
+const parseVersus = ($info: ReturnType<cheerio.CheerioAPI>) => {
 	const score = $info.find('.versus-upper').text()
 	const bestOf = $info.find('.versus-lower > abbr').text().toLowerCase().replace('bo', '')
 	return {
@@ -81,7 +81,7 @@ const parseVersus = ($info: cheerio.Cheerio) => {
 	}
 }
 
-const parseFiller = ($data: cheerio.Cheerio, $: cheerio.Root) => {
+const parseFiller = ($data: ReturnType<cheerio.CheerioAPI>, $: cheerio.CheerioAPI) => {
 	const time = $data.find('.match-countdown > .timer-object').attr('data-timestamp')
 	const $tournament = $data.find('.tournament-text-flex > a')
 	const tournament = {
