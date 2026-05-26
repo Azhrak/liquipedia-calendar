@@ -1,6 +1,6 @@
-import { getMatches } from '../matches';
+import { getMatches } from '../matches'
 
 export async function GET(request: Request) {
-	const matches = await getMatches(request);
-	return Response.json(matches);
+	const matches = await getMatches(request)
+	return Response.json(matches)
 }

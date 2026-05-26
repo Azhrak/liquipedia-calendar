@@ -10,4 +10,4 @@ export const Sources = () => (
 			https://liquipedia.net/stormgate
 		</a>
 	</div>
-);
+)

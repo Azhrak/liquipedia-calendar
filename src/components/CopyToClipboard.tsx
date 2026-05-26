@@ -1,13 +1,13 @@
-'use client';
+'use client'
 
-import { removeTrailingSlash } from '@/utils/utils';
-import Image from 'next/image';
+import Image from 'next/image'
+import { removeTrailingSlash } from '@/utils/utils'
 
 export const CopyToClipboard = (props: { text: string; prependUrl?: boolean }) => {
 	const handleClick = () => {
-		const url = props.prependUrl ? removeTrailingSlash(window.location.origin) : '';
-		navigator.clipboard.writeText(url + props.text);
-	};
+		const url = props.prependUrl ? removeTrailingSlash(window.location.origin) : ''
+		navigator.clipboard.writeText(url + props.text)
+	}
 
 	return (
 		<div onClick={handleClick} className="flex cursor-pointer items-center gap-1">
@@ -21,5 +21,5 @@ export const CopyToClipboard = (props: { text: string; prependUrl?: boolean }) =
 			/>{' '}
 			<span className="text-xs">Copy</span>
 		</div>
-	);
-};
+	)
+}

@@ -1,24 +1,24 @@
-'use client';
+'use client'
 
-import { CopyToClipboard } from '@/components/CopyToClipboard';
-import { useFilters } from './providers/FiltersProvider';
-import qs from 'qs';
+import qs from 'qs'
+import { CopyToClipboard } from '@/components/CopyToClipboard'
+import { useFilters } from './providers/FiltersProvider'
 
 type Props = {
-	icalUrl: string;
-	jsonUrl: string;
-};
+	icalUrl: string
+	jsonUrl: string
+}
 
 export const Links = ({ icalUrl, jsonUrl }: Props) => {
-	const { state } = useFilters();
+	const { state } = useFilters()
 
 	const query = (url: string) => {
-		const q = qs.stringify(state);
+		const q = qs.stringify(state)
 		if (q) {
-			return `${url}?${q}`;
+			return `${url}?${q}`
 		}
-		return url;
-	};
+		return url
+	}
 
 	return (
 		<div className="mt-8 flex-col gap-10">
@@ -38,5 +38,5 @@ export const Links = ({ icalUrl, jsonUrl }: Props) => {
 				</div>
 			</div>
 		</div>
-	);
-};
+	)
+}

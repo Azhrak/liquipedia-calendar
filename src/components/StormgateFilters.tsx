@@ -1,22 +1,15 @@
-'use client';
+'use client'
 
-import { useFilters } from '@/components/providers/FiltersProvider';
-import Image from 'next/image';
+import Image from 'next/image'
+import { useFilters } from '@/components/providers/FiltersProvider'
 
 export const StormgateFilters = () => {
-	const {
-		state,
-		filterPlayer,
-		filterFaction,
-		filterCountry,
-		filterTournament,
-		filterFeatured,
-		clearFilters,
-	} = useFilters();
+	const { state, filterPlayer, filterFaction, filterCountry, filterFeatured, clearFilters } =
+		useFilters()
 
 	const handleClear = () => {
-		clearFilters();
-	};
+		clearFilters()
+	}
 
 	return (
 		<>
@@ -125,5 +118,5 @@ export const StormgateFilters = () => {
 				</div>
 			</div>
 		</>
-	);
-};
+	)
+}

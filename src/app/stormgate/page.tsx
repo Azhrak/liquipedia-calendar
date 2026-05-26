@@ -1,14 +1,14 @@
-import { GameTabs } from '@/components/GameTabs';
-import { Header } from '@/components/Header';
-import { Links } from '@/components/Links';
-import { MainContainer } from '@/components/MainContainer';
-import { FiltersProvider } from '@/components/providers/FiltersProvider';
-import { Sources } from '@/components/Sources';
-import { StormgateFilters } from '@/components/StormgateFilters';
+import { GameTabs } from '@/components/GameTabs'
+import { Header } from '@/components/Header'
+import { Links } from '@/components/Links'
+import { MainContainer } from '@/components/MainContainer'
+import { FiltersProvider } from '@/components/providers/FiltersProvider'
+import { Sources } from '@/components/Sources'
+import { StormgateFilters } from '@/components/StormgateFilters'
 
 export default function Stormgate() {
-	const icalUrl = '/get/stormgate/ical';
-	const jsonUrl = '/get/stormgate/json';
+	const icalUrl = '/get/stormgate/ical'
+	const jsonUrl = '/get/stormgate/json'
 
 	return (
 		<MainContainer>
@@ -26,5 +26,5 @@ export default function Stormgate() {
 
 			<Sources />
 		</MainContainer>
-	);
+	)
 }

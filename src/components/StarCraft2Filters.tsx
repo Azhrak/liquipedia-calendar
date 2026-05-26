@@ -1,22 +1,15 @@
-'use client';
+'use client'
 
-import { useFilters } from '@/components/providers/FiltersProvider';
-import Image from 'next/image';
+import Image from 'next/image'
+import { useFilters } from '@/components/providers/FiltersProvider'
 
 export const StarCraft2Filters = () => {
-	const {
-		state,
-		filterPlayer,
-		filterRace,
-		filterCountry,
-		filterTournament,
-		filterFeatured,
-		clearFilters,
-	} = useFilters();
+	const { state, filterPlayer, filterRace, filterCountry, filterFeatured, clearFilters } =
+		useFilters()
 
 	const handleClear = () => {
-		clearFilters();
-	};
+		clearFilters()
+	}
 
 	return (
 		<>
@@ -125,5 +118,5 @@ export const StarCraft2Filters = () => {
 				</div>
 			</div>
 		</>
-	);
-};
+	)
+}

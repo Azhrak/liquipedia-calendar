@@ -1,4 +1,4 @@
-import { HeaderImage } from './HeaderImage';
+import { HeaderImage } from './HeaderImage'
 
 export const Header = () => (
 	<div className="mb-8 flex flex-col gap-4 text-center">
@@ -18,4 +18,4 @@ export const Header = () => (
 			</p>
 		</div>
 	</div>
-);
+)

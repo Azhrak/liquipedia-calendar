@@ -1,16 +1,16 @@
-import { fetchWikiParsed } from '../fetch-page';
-import { StormgateMatch } from '@/@types/stormgate';
-import { MatchParserStormgate } from './match-parser';
-import { cache } from 'react';
-import { config } from '@/config';
+import { cache } from 'react'
+import { StormgateMatch } from '@/@types/stormgate'
+import { config } from '@/config'
+import { fetchWikiParsed } from '../fetch-page'
+import { MatchParserStormgate } from './match-parser'
 
-const MATCHES_PAGE_SG = 'Liquipedia:Upcoming_and_ongoing_matches_on_mainpage/dynamic';
+const MATCHES_PAGE_SG = 'Liquipedia:Upcoming_and_ongoing_matches_on_mainpage/dynamic'
 
-export const revalidate = 300;
+export const revalidate = 300
 
 export const extractStormgateMatches = cache(async (): Promise<StormgateMatch[]> => {
-	const htmlString = await fetchWikiParsed(MATCHES_PAGE_SG, config.sgWikiRootUrl);
-	const matches = new MatchParserStormgate().parseMatches(htmlString);
+	const htmlString = await fetchWikiParsed(MATCHES_PAGE_SG, config.sgWikiRootUrl)
+	const matches = new MatchParserStormgate().parseMatches(htmlString)
 
-	return matches;
-});
+	return matches
+})

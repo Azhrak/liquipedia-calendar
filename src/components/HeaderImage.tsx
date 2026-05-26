@@ -1,10 +1,10 @@
-'use client';
+'use client'
 
-import Image from 'next/image';
-import { useState } from 'react';
+import Image from 'next/image'
+import { useState } from 'react'
 
 export const HeaderImage = () => {
-	const [expanded, setExpanded] = useState(false);
+	const [expanded, setExpanded] = useState(false)
 	return (
 		<div className="flex justify-center">
 			<Image
@@ -16,5 +16,5 @@ export const HeaderImage = () => {
 				onClick={() => setExpanded(!expanded)}
 			/>
 		</div>
-	);
-};
+	)
+}

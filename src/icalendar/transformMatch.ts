@@ -1,6 +1,6 @@
-import { CalendarMatch } from '@/@types/calendar';
-import { SC2Match } from '@/@types/starcraft';
-import { StormgateMatch } from '@/@types/stormgate';
+import { CalendarMatch } from '@/@types/calendar'
+import { SC2Match } from '@/@types/starcraft'
+import { StormgateMatch } from '@/@types/stormgate'
 
 export const transformStarCraft2Matches = (matches: SC2Match[]): CalendarMatch[] => {
 	return matches.map((match) => ({
@@ -19,8 +19,8 @@ export const transformStarCraft2Matches = (matches: SC2Match[]): CalendarMatch[]
 					category: match.teamRight.race,
 				}
 			: null,
-	}));
-};
+	}))
+}
 
 export const tarnsformStormgateMatches = (matches: StormgateMatch[]): CalendarMatch[] => {
 	return matches.map((match) => ({
@@ -39,5 +39,5 @@ export const tarnsformStormgateMatches = (matches: StormgateMatch[]): CalendarMa
 					category: match.teamRight.faction,
 				}
 			: null,
-	}));
-};
+	}))
+}

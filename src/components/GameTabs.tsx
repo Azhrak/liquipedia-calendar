@@ -1,11 +1,11 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { twMerge } from 'tailwind-merge';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { twMerge } from 'tailwind-merge'
 
 export const GameTabs = () => {
-	const pathname = usePathname();
+	const pathname = usePathname()
 	return (
 		<nav className="flex justify-center">
 			<div className="flex gap-4">
@@ -29,5 +29,5 @@ export const GameTabs = () => {
 				</Link>
 			</div>
 		</nav>
-	);
-};
+	)
+}
