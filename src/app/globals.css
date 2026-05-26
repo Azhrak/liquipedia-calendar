@@ -1,43 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-/* @import 'fonts.css'; */
 
 :root {
-	--foreground-rgb: 0, 0, 0;
-	--background-start-rgb: 214, 219, 220;
-	--background-end-rgb: 255, 255, 255;
+	color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-	:root {
-		--foreground-rgb: 255, 255, 255;
-		--background-start-rgb: 20, 50, 100;
-		--background-end-rgb: 10, 70, 100;
-	}
+html,
+body {
+	background-color: #08090c;
 }
 
 body {
-	color: rgb(var(--foreground-rgb));
-	background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-		rgb(var(--background-start-rgb));
-	font-family: var(--font-mplus);
+	font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+	color: #e8ecf3;
 	min-height: 100dvh;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-	font-family: var(--font-josefin);
+::selection {
+	background: #7cf6c2;
+	color: #08090c;
 }
 
-h1 {
-	@apply text-5xl;
+/* Subtle radial atmosphere for the page background. */
+.hex-bg {
+	background-image:
+		radial-gradient(circle at 20% -10%, rgba(124, 246, 194, 0.08), transparent 40%),
+		radial-gradient(circle at 90% 10%, rgba(83, 128, 255, 0.06), transparent 45%);
 }
 
-a {
-	@apply underline underline-offset-4;
+/* Pulse used by the iCal UrlBlock to draw the eye. */
+@keyframes pulse-glow {
+	0%,
+	100% {
+		box-shadow: 0 0 0 1px rgba(124, 246, 194, 0.2), 0 0 0 rgba(124, 246, 194, 0);
+	}
+	50% {
+		box-shadow: 0 0 0 1px rgba(124, 246, 194, 0.45), 0 0 18px rgba(124, 246, 194, 0.25);
+	}
+}
+
+.animate-pulse-glow {
+	animation: pulse-glow 2.4s ease-in-out infinite;
 }

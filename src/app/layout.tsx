@@ -1,19 +1,36 @@
 import type { Metadata } from 'next'
-import { Josefin_Sans, M_PLUS_2 } from 'next/font/google'
+import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import './globals.css'
 
-const josefin = Josefin_Sans({ subsets: ['latin'], variable: '--font-josefin' })
-const mplus = M_PLUS_2({ subsets: ['latin'], variable: '--font-mplus' })
+const inter = Inter({
+	subsets: ['latin'],
+	variable: '--font-sans',
+})
+
+const spaceGrotesk = Space_Grotesk({
+	subsets: ['latin'],
+	variable: '--font-display',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+	subsets: ['latin'],
+	variable: '--font-mono',
+})
 
 export const metadata: Metadata = {
-	title: 'Liquipedia Match Calendar',
-	description: 'Get the matches you choose to you calendar!',
+	title: 'Liquipedia Calendar — StarCraft II match & tournament feeds',
+	description:
+		'Subscribe to a live feed of pro StarCraft II matches and tournaments, filtered to exactly what you care about.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
-			<body className={`${josefin.variable} ${mplus.variable}`}>{children}</body>
+		<html lang="en" className="dark">
+			<body
+				className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans bg-ink-950 text-white antialiased`}
+			>
+				{children}
+			</body>
 		</html>
 	)
 }

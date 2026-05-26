@@ -1,19 +1,30 @@
-import { HeaderImage } from './HeaderImage'
+export function Header() {
+	return (
+		<header className="border-b border-ink-800/80 bg-ink-950/50 backdrop-blur sticky top-0 z-20">
+			<div className="max-w-6xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between">
+				<div className="flex items-center gap-2.5">
+					<LogoMark />
+					<div className="leading-tight flex items-baseline gap-2">
+						<span className="font-display font-semibold text-sm text-white">
+							Liquipedia Calendar
+						</span>
+						<span className="text-[11px] text-ink-500">·</span>
+						<span className="text-[11px] text-ink-300 font-medium">StarCraft II</span>
+					</div>
+				</div>
+			</div>
+		</header>
+	)
+}
 
-export const Header = () => (
-	<div className="mb-8 flex flex-col gap-4 text-center">
-		<h1 className="mb-2">Liquipedia Calendar</h1>
-		<HeaderImage />
-		<div className="mx-auto flex max-w-lg flex-col gap-2 text-center">
-			<p className="text-xl font-bold">Get them matches into your calendar!</p>
-			<p className="text-l">
-				Pick desired filters (if any), and get the link below to paste into your calendar app.
-			</p>
-			<p className="text-l">
-				Syncing external calendars with Google Calendar is pain, so{' '}
-				<a href="https://github.com/derekantrican/GAS-ICS-Sync">this script</a> might help you.
-			</p>
-			<p className="text-sm">Currently only supporting the StarCraft II Liquipedia.</p>
+function LogoMark() {
+	return (
+		<div className="relative w-7 h-7" aria-hidden>
+			<div className="absolute inset-0 bg-gradient-to-br from-accent to-emerald-400 rounded-md rotate-45" />
+			<div className="absolute inset-1.5 bg-ink-950 rotate-45" />
+			<div className="absolute inset-0 flex items-center justify-center text-[11px] font-display font-bold text-accent">
+				LC
+			</div>
 		</div>
-	</div>
-)
+	)
+}
