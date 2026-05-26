@@ -8,7 +8,18 @@ export const filterStarCraft2Matches = (matches: SC2Match[], params: FilterParam
 	}
 
 	const player = params.player?.toLowerCase().slice(0, 32)
-	const race = params.race?.toLowerCase().slice(0, 16)
+	const raceParam = params.race
+	const races = Array.isArray(raceParam)
+		? raceParam.map((r) => r.toLowerCase().slice(0, 16))
+		: raceParam
+			? raceParam
+				.toString()
+				.toLowerCase()
+				.slice(0, 64)
+				.split(',')
+				.map((r) => r.trim())
+				.filter(Boolean)
+			: []
 	const country = params.country?.toLowerCase().slice(0, 3)
 	const tournament = params.tournament
 		?.toLowerCase()
@@ -28,9 +39,12 @@ export const filterStarCraft2Matches = (matches: SC2Match[], params: FilterParam
 		filterFunctions.push(testPlayers)
 	}
 
-	if (race) {
+	if (races.length > 0) {
 		const testRaces = (match?: SC2Match) => {
-			return match?.teamLeft?.race === race || match?.teamRight?.race === race
+			return (
+				(match?.teamLeft?.race != null && races.includes(match.teamLeft.race)) ||
+				(match?.teamRight?.race != null && races.includes(match.teamRight.race))
+			)
 		}
 		filterFunctions.push(testRaces)
 	}

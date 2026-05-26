@@ -6,12 +6,12 @@ import { FilterParams } from '@/@types/common'
 type State = FilterParams
 type Action = {
 	type: string
-	payload: string
+	payload: string | string[]
 }
 type Context = {
 	state: State
 	filterPlayer: (v: string) => void
-	filterRace: (v: string) => void
+	filterRace: (v: string[]) => void
 	filterFaction: (v: string) => void
 	filterCountry: (v: string) => void
 	filterTournament: (v: string) => void
@@ -39,17 +39,17 @@ function filtersReducer(state: State, action: Action) {
 
 	switch (type) {
 		case 'player':
-			return { ...state, player: payload }
+			return { ...state, player: payload as string }
 		case 'race':
-			return { ...state, race: payload }
+			return { ...state, race: payload as string[] }
 		case 'faction':
-			return { ...state, faction: payload }
+			return { ...state, faction: payload as string }
 		case 'country':
-			return { ...state, country: payload }
+			return { ...state, country: payload as string }
 		case 'tournament':
-			return { ...state, tournament: payload }
+			return { ...state, tournament: payload as string }
 		case 'featured':
-			return { ...state, featured: payload }
+			return { ...state, featured: payload as string }
 		case 'reset':
 			return initialState
 		default:
@@ -61,52 +61,31 @@ export const FiltersProvider = ({ children }: { children: ReactNode }) => {
 	const [state, dispatch] = useReducer(filtersReducer, {})
 
 	const filterPlayer = (value: string) => {
-		dispatch({
-			type: 'player',
-			payload: value,
-		})
+		dispatch({ type: 'player', payload: value })
 	}
 
-	const filterRace = (value: string) => {
-		dispatch({
-			type: 'race',
-			payload: value,
-		})
+	const filterRace = (value: string[]) => {
+		dispatch({ type: 'race', payload: value })
 	}
 
 	const filterFaction = (value: string) => {
-		dispatch({
-			type: 'faction',
-			payload: value,
-		})
+		dispatch({ type: 'faction', payload: value })
 	}
 
 	const filterCountry = (value: string) => {
-		dispatch({
-			type: 'country',
-			payload: value.trim(),
-		})
+		dispatch({ type: 'country', payload: value.trim() })
 	}
 
 	const filterTournament = (value: string) => {
-		dispatch({
-			type: 'tournament',
-			payload: value,
-		})
+		dispatch({ type: 'tournament', payload: value })
 	}
 
 	const filterFeatured = (value: string) => {
-		dispatch({
-			type: 'featured',
-			payload: value,
-		})
+		dispatch({ type: 'featured', payload: value })
 	}
 
 	const clearFilters = () => {
-		dispatch({
-			type: 'reset',
-			payload: '',
-		})
+		dispatch({ type: 'reset', payload: '' })
 	}
 
 	const value = {

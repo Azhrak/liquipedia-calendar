@@ -30,16 +30,16 @@ export function MatchesFeed() {
 	} = useFilters()
 
 	const player = state.player ?? ''
-	const race = state.race ?? ''
+	const race = state.race ?? []
 	const country = state.country ?? ''
 	const featured = (state.featured as FeaturedValue) ?? 'all'
 
-	const hasFilters = Boolean(player || race || country || (featured && featured !== 'all'))
+	const hasFilters = Boolean(player || race.length > 0 || country || (featured && featured !== 'all'))
 
 	const urlState = useMemo(
 		() => ({
 			player: player || undefined,
-			race: race || undefined,
+			race: race.length > 0 ? race : undefined,
 			country: country || undefined,
 			featured: featured !== 'all' ? featured : undefined,
 		}),

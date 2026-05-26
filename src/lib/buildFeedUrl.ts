@@ -10,7 +10,12 @@ import type { TierValue } from './tiers'
 export function buildMatchUrl(base: string, params: FilterParams): string {
 	const clean: Record<string, string> = {}
 	for (const [k, v] of Object.entries(params)) {
-		if (v != null && v !== '') clean[k] = String(v)
+		if (v == null) continue
+		if (Array.isArray(v)) {
+			if (v.length > 0) clean[k] = v.join(',')
+		} else if (v !== '') {
+			clean[k] = String(v)
+		}
 	}
 	const q = qs.stringify(clean)
 	return q ? `${base}?${q}` : base
