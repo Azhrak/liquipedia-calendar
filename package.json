@@ -15,7 +15,8 @@
 		"start": "next start",
 		"lint": "biome check .",
 		"format": "biome format --write .",
-		"check": "biome check --write ."
+		"check": "biome check --write .",
+		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"cheerio": "^1.0.0",
