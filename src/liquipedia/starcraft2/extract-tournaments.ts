@@ -15,13 +15,14 @@ function sc2Url(path: string): string {
 }
 
 function normalizeTier(raw: string): string | null {
-	const t = raw.trim().toUpperCase()
-	if (t.startsWith('S')) return 'S'
-	if (t.startsWith('A')) return '1'
-	if (t.startsWith('B')) return '2'
-	if (t.startsWith('C')) return '3'
-	if (t.length > 0) return '4'
-	return null
+	const m = raw.trim().toUpperCase().match(/^([SABC])-TIER$|\(([SABC])\)/)
+	if (!m) return raw.trim().length > 0 ? '4' : null
+	const letter = m[1] ?? m[2]
+	if (letter === 'S') return 'S'
+	if (letter === 'A') return '1'
+	if (letter === 'B') return '2'
+	if (letter === 'C') return '3'
+	return '4'
 }
 
 function parseDateRange(raw: string): { startDate: string | null; endDate: string | null } {
