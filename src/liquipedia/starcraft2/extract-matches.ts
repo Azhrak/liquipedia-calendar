@@ -101,6 +101,15 @@ function parseMatch($: cheerio.CheerioAPI, el: AnyNode): SC2Match | null {
 		`${teamLeft?.name ?? ''}${teamRight?.name ?? ''}${bestOf ?? ''}${time ?? ''}`,
 	)
 
+	// Stable across reschedules: omits time. Team names are sorted so swapping
+	// sides yields the same id. tournamentLink carries the page #fragment (e.g.
+	// #GS_2_Group_A), which encodes the stage/round so the same players meeting
+	// again in a later stage gets a distinct id.
+	const sortedNames = [teamLeft?.name ?? '', teamRight?.name ?? ''].sort().join('')
+	match.stableId = simpleHash(
+		`${sortedNames}${bestOf ?? ''}${tournamentLink ?? tournamentName ?? ''}`,
+	)
+
 	return match
 }
 

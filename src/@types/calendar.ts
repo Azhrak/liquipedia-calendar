@@ -1,6 +1,7 @@
 import { MatchStream, MatchTournament } from './common'
 
 export type CalendarMatch = {
+	stableId?: string
 	teamLeft: CalendarMatchTeam | null
 	teamRight: CalendarMatchTeam | null
 	bestOf: number | null

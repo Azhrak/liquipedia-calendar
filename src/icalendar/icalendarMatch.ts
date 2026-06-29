@@ -14,6 +14,7 @@ export const createMatchEvents = (matches: CalendarMatch[]) => {
 const matchToIcal = (match: CalendarMatch): ics.EventAttributes => {
 	return {
 		calName: 'Liquipedia Match Calendar',
+		uid: getUid(match),
 		start: getTime(match.time as string),
 		duration: getDuration(match.bestOf),
 		title: getTitle(match),
@@ -28,6 +29,9 @@ const matchToIcal = (match: CalendarMatch): ics.EventAttributes => {
 		// organizer: { name: "Admin", email: "Race@BolderBOULDER.com" },
 	}
 }
+
+const getUid = (match: CalendarMatch) =>
+	match.stableId ? `${match.stableId}@liquipedia-calendar` : undefined
 
 const getTime = (isoDate: string): ics.DateArray => {
 	const d = new Date(isoDate)

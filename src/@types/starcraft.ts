@@ -2,6 +2,7 @@ import { MatchStream, MatchTournament } from './common'
 
 export type SC2Match = {
 	hash?: string
+	stableId?: string
 	teamLeft: SC2MatchTeam | null
 	teamRight: SC2MatchTeam | null
 	bestOf: number | null
