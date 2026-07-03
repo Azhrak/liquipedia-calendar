@@ -32,7 +32,7 @@ function parseDateRange(raw: string): { startDate: string | null; endDate: strin
 	// Split on en-dash or em-dash
 	const parts = trimmed.split(/\s*[–—-]\s*/)
 
-	const parseDate = (s: string, referenceYear?: number): string | null => {
+	const parseDate = (s: string, referenceYear?: number, referenceMonth?: string): string | null => {
 		// Try full date first: "May 17, 2026"
 		let d = DateTime.fromFormat(s.trim(), 'MMM d, yyyy')
 		if (d.isValid) return d.toISODate()
@@ -42,6 +42,13 @@ function parseDateRange(raw: string): { startDate: string | null; endDate: strin
 			d = DateTime.fromFormat(`${s.trim()} ${referenceYear}`, 'MMM d yyyy')
 			if (d.isValid) return d.toISODate()
 		}
+
+		// Same-month range: end part has no month, e.g. "05, 2026" (from "Jul 03–05, 2026")
+		if (referenceMonth) {
+			d = DateTime.fromFormat(`${referenceMonth} ${s.trim()}`, 'MMM d, yyyy')
+			if (d.isValid) return d.toISODate()
+		}
+
 		return null
 	}
 
@@ -51,7 +58,9 @@ function parseDateRange(raw: string): { startDate: string | null; endDate: strin
 	}
 
 	// Two parts: start may lack year, end has year
-	const endDate = parseDate(parts[1])
+	const startMonthMatch = parts[0].trim().match(/^[A-Za-z]{3}/)
+	const startMonth = startMonthMatch ? startMonthMatch[0] : undefined
+	const endDate = parseDate(parts[1], undefined, startMonth)
 	const endYear = endDate ? parseInt(endDate.slice(0, 4)) : undefined
 	const startDate = parseDate(parts[0], endYear) ?? parseDate(parts[0])
 
