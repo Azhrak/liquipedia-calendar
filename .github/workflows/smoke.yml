@@ -1,0 +1,27 @@
+name: Endpoint smoke tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Daily at 06:00 UTC — catches upstream Liquipedia changes even without a push.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      SC2_WIKI_ROOT_URL: https://liquipedia.net/starcraft2
+      LIQUIPEDIA_URL: https://liquipedia.net
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:smoke
