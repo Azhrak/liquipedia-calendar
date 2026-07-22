@@ -7,6 +7,12 @@ import { extractStarCraft2Tournaments } from '@/liquipedia/starcraft2/extract-to
 // Live smoke tests: hit the real Liquipedia API through the extract pipeline.
 // Catches upstream contract drift (e.g. renamed Lua functions, changed HTML
 // structure) that unit tests can't see. Run on push to main and on a daily cron.
+//
+// Both extract fns issue an `action=parse` request, which Liquipedia caps at
+// 1 request / 30s. Unlike the app, this runner has no Next.js data cache to
+// dedupe, so the back-to-back parse calls can trip a 429 — the fetch layer
+// (fetch-page.ts) absorbs that by backing off and retrying, so the tests below
+// don't need to space requests themselves.
 
 test('matches: extract returns parsed upcoming matches', async () => {
 	const matches = await extractStarCraft2Matches()
