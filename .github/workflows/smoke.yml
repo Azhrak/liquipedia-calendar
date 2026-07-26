@@ -6,13 +6,17 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    # Daily at 06:00 UTC — catches upstream Liquipedia changes even without a push.
-    - cron: '0 6 * * *'
+    # Daily — catches upstream Liquipedia changes even without a push. Runs at
+    # an odd minute rather than on the hour: GitHub queues scheduled jobs from
+    # every repository at :00, and that stampede shares the same runner IP pool
+    # Liquipedia rate-limits us by.
+    - cron: '37 5 * * *'
   workflow_dispatch:
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       SC2_WIKI_ROOT_URL: https://liquipedia.net/starcraft2
       LIQUIPEDIA_URL: https://liquipedia.net
@@ -25,3 +29,16 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:smoke
+        env:
+          # Liquipedia rate-limits per client IP, and hosted runners come from a
+          # shared datacenter pool whose budget is often already spent by
+          # unrelated traffic. Give the fetch layer a few minutes to ride that
+          # out — far longer than the app's default, which has to fit inside a
+          # serverless request.
+          LIQUIPEDIA_RETRY_BUDGET_MS: '240000'
+          # Optional escape hatch: set the SMOKE_HTTPS_PROXY repository secret to
+          # a proxy you control (e.g. your own VPS or Cloudflare Worker) and the
+          # smoke run fetches from that IP instead of the shared runner pool.
+          # Unset is the normal case — an empty value means "no proxy".
+          NODE_OPTIONS: --use-env-proxy
+          HTTPS_PROXY: ${{ secrets.SMOKE_HTTPS_PROXY }}
