@@ -1,4 +1,5 @@
 import { setTimeout as sleep } from 'node:timers/promises'
+import { config } from '@/config'
 import { minutesInSeconds } from '@/utils/utils'
 
 const HEADERS = {
@@ -6,28 +7,59 @@ const HEADERS = {
 	'Accept-Encoding': 'gzip',
 }
 
+/**
+ * Thrown when Liquipedia kept rate-limiting us for the whole retry budget.
+ * Distinct from a parse/contract failure so callers (notably the smoke tests)
+ * can tell "we were throttled" apart from "the upstream response changed".
+ */
+export class LiquipediaRateLimitError extends Error {
+	readonly status: number
+
+	constructor(status: number, detail: string) {
+		super(`Liquipedia rate limited the request (status ${status}): ${detail}`)
+		this.name = 'LiquipediaRateLimitError'
+		this.status = status
+	}
+}
+
 // Liquipedia's API Terms of Use cap action=parse at 1 request / 30s (other
 // actions: 1 / 2s). The app normally stays under this via the Next.js data
 // cache, but on a 429 we back off and retry rather than surface an error —
-// honoring Retry-After when present, otherwise exponential (2/4/8/16s). The
-// cap covers the 30s parse window without hanging indefinitely.
-const MAX_RETRIES = 4
+// honoring Retry-After when present, otherwise exponential (2/4/8/16/32s) with
+// jitter. Retrying stops once the next delay would overrun the retry budget
+// (config.liquipediaRetryBudgetMs), so a fetch never hangs indefinitely.
 const BASE_BACKOFF_MS = 2_000
-const MAX_BACKOFF_MS = 35_000
+const MAX_BACKOFF_MS = 60_000
 
 function backoffDelayMs(attempt: number, retryAfter: string | null): number {
 	const seconds = retryAfter ? Number.parseInt(retryAfter, 10) : Number.NaN
 	if (!Number.isNaN(seconds)) return Math.min(seconds * 1000, MAX_BACKOFF_MS)
-	return Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS)
+	const exponential = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS)
+	// Jitter keeps retries from lining up when several callers back off together.
+	return Math.round(exponential * (0.75 + Math.random() * 0.5))
+}
+
+// The 429 can come from the API itself (JSON) or from the edge, which serves an
+// HTML "Rate Limited - Liquipedia" page — sometimes under a non-429 status.
+function isRateLimitPage(body: string): boolean {
+	return /Rate Limited/i.test(body.slice(0, 500))
 }
 
 async function fetchJson(url: string, revalidate: number): Promise<unknown> {
+	const deadline = Date.now() + config.liquipediaRetryBudgetMs
+
 	for (let attempt = 0; ; attempt++) {
 		const data = await fetch(url, { next: { revalidate }, headers: HEADERS })
 
-		if (data.status === 429 && attempt < MAX_RETRIES) {
+		if (data.status === 429) {
 			const delayMs = backoffDelayMs(attempt, data.headers.get('retry-after'))
 			await data.body?.cancel() // release the connection before retrying
+			if (Date.now() + delayMs > deadline) {
+				throw new LiquipediaRateLimitError(
+					data.status,
+					`still throttled after ${Math.round(config.liquipediaRetryBudgetMs / 1000)}s of retries`,
+				)
+			}
 			await sleep(delayMs)
 			continue
 		}
@@ -35,6 +67,9 @@ async function fetchJson(url: string, revalidate: number): Promise<unknown> {
 		const contentType = data.headers.get('content-type') ?? ''
 		if (!contentType.includes('application/json')) {
 			const text = await data.text()
+			if (isRateLimitPage(text)) {
+				throw new LiquipediaRateLimitError(data.status, text.slice(0, 200))
+			}
 			throw new Error(
 				`Liquipedia API returned non-JSON (status ${data.status}): ${text.slice(0, 200)}`,
 			)
