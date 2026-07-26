@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
+import { type TestContext, test } from 'node:test'
 
+import { LiquipediaRateLimitError } from '@/liquipedia/fetch-page'
 import { extractStarCraft2Matches } from '@/liquipedia/starcraft2/extract-matches'
 import { extractStarCraft2Tournaments } from '@/liquipedia/starcraft2/extract-tournaments'
 
@@ -9,31 +10,51 @@ import { extractStarCraft2Tournaments } from '@/liquipedia/starcraft2/extract-to
 // structure) that unit tests can't see. Run on push to main and on a daily cron.
 //
 // Both extract fns issue an `action=parse` request, which Liquipedia caps at
-// 1 request / 30s. Unlike the app, this runner has no Next.js data cache to
-// dedupe, so the back-to-back parse calls can trip a 429 — the fetch layer
-// (fetch-page.ts) absorbs that by backing off and retrying, so the tests below
-// don't need to space requests themselves.
+// 1 request / 30s. The fetch layer (fetch-page.ts) backs off and retries on a
+// 429. If it's still throttled after that — common from shared CI runner IPs,
+// which Liquipedia blocks at the IP level regardless of request spacing — we
+// SKIP rather than fail: a rate-limit block is infrastructure noise, not the
+// upstream contract drift these tests exist to catch. A genuine parse/shape
+// regression still fails the assertions below.
 
-test('matches: extract returns parsed upcoming matches', async () => {
-	const matches = await extractStarCraft2Matches()
+// Runs `fn`, marking the test skipped (instead of failed) if Liquipedia
+// rate-limited us. Any other error propagates and fails the test.
+async function runOrSkipOnRateLimit(t: TestContext, fn: () => Promise<void>): Promise<void> {
+	try {
+		await fn()
+	} catch (err) {
+		if (err instanceof LiquipediaRateLimitError) {
+			t.skip(`Liquipedia rate limited the request: ${err.message}`)
+			return
+		}
+		throw err
+	}
+}
 
-	assert.ok(matches.length > 0, 'expected at least one match from Liquipedia')
+test('matches: extract returns parsed upcoming matches', async (t) => {
+	await runOrSkipOnRateLimit(t, async () => {
+		const matches = await extractStarCraft2Matches()
 
-	const withNames = matches.filter((m) => m.teamLeft?.name || m.teamRight?.name)
-	assert.ok(withNames.length > 0, 'expected matches with parsed team names')
+		assert.ok(matches.length > 0, 'expected at least one match from Liquipedia')
 
-	const withTime = matches.filter((m) => m.time)
-	assert.ok(withTime.length > 0, 'expected matches with a parsed start time')
+		const withNames = matches.filter((m) => m.teamLeft?.name || m.teamRight?.name)
+		assert.ok(withNames.length > 0, 'expected matches with parsed team names')
+
+		const withTime = matches.filter((m) => m.time)
+		assert.ok(withTime.length > 0, 'expected matches with a parsed start time')
+	})
 })
 
-test('tournaments: extract returns parsed tournaments', async () => {
-	const tournaments = await extractStarCraft2Tournaments()
+test('tournaments: extract returns parsed tournaments', async (t) => {
+	await runOrSkipOnRateLimit(t, async () => {
+		const tournaments = await extractStarCraft2Tournaments()
 
-	assert.ok(tournaments.length > 0, 'expected at least one tournament from Liquipedia')
+		assert.ok(tournaments.length > 0, 'expected at least one tournament from Liquipedia')
 
-	const withNames = tournaments.filter((t) => t.name)
-	assert.ok(withNames.length > 0, 'expected tournaments with parsed names')
+		const withNames = tournaments.filter((tournament) => tournament.name)
+		assert.ok(withNames.length > 0, 'expected tournaments with parsed names')
 
-	const withDates = tournaments.filter((t) => t.startDate)
-	assert.ok(withDates.length > 0, 'expected tournaments with a parsed start date')
+		const withDates = tournaments.filter((tournament) => tournament.startDate)
+		assert.ok(withDates.length > 0, 'expected tournaments with a parsed start date')
+	})
 })

@@ -6,11 +6,23 @@ const HEADERS = {
 	'Accept-Encoding': 'gzip',
 }
 
+// Thrown when Liquipedia rate-limits us (HTTP 429) even after retries. Distinct
+// from other failures so callers can treat it as "couldn't reach the API" (e.g.
+// the smoke test skips rather than fails) instead of a data/contract problem.
+export class LiquipediaRateLimitError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'LiquipediaRateLimitError'
+	}
+}
+
 // Liquipedia's API Terms of Use cap action=parse at 1 request / 30s (other
 // actions: 1 / 2s). The app normally stays under this via the Next.js data
 // cache, but on a 429 we back off and retry rather than surface an error —
 // honoring Retry-After when present, otherwise exponential (2/4/8/16s). The
-// cap covers the 30s parse window without hanging indefinitely.
+// cap covers the 30s parse window without hanging indefinitely. If the API is
+// still throttling after all retries (e.g. a per-IP block, common on shared
+// CI runners) we give up with a typed LiquipediaRateLimitError.
 const MAX_RETRIES = 4
 const BASE_BACKOFF_MS = 2_000
 const MAX_BACKOFF_MS = 35_000
@@ -25,11 +37,17 @@ async function fetchJson(url: string, revalidate: number): Promise<unknown> {
 	for (let attempt = 0; ; attempt++) {
 		const data = await fetch(url, { next: { revalidate }, headers: HEADERS })
 
-		if (data.status === 429 && attempt < MAX_RETRIES) {
-			const delayMs = backoffDelayMs(attempt, data.headers.get('retry-after'))
-			await data.body?.cancel() // release the connection before retrying
-			await sleep(delayMs)
-			continue
+		if (data.status === 429) {
+			if (attempt < MAX_RETRIES) {
+				const delayMs = backoffDelayMs(attempt, data.headers.get('retry-after'))
+				await data.body?.cancel() // release the connection before retrying
+				await sleep(delayMs)
+				continue
+			}
+			const text = await data.text()
+			throw new LiquipediaRateLimitError(
+				`Liquipedia rate limited the request (status 429) after ${MAX_RETRIES} retries: ${text.slice(0, 200)}`,
+			)
 		}
 
 		const contentType = data.headers.get('content-type') ?? ''
