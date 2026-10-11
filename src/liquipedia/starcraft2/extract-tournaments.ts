@@ -15,7 +15,10 @@ function sc2Url(path: string): string {
 }
 
 function normalizeTier(raw: string): string | null {
-	const m = raw.trim().toUpperCase().match(/^([SABC])-TIER$|\(([SABC])\)/)
+	const m = raw
+		.trim()
+		.toUpperCase()
+		.match(/^([SABC])-TIER$|\(([SABC])\)/)
 	if (!m) return raw.trim().length > 0 ? '4' : null
 	const letter = m[1] ?? m[2]
 	if (letter === 'S') return 'S'
