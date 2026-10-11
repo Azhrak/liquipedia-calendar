@@ -13,10 +13,15 @@ on:
     - cron: '37 5 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      verified: ${{ steps.outcome.outputs.verified }}
     env:
       SC2_WIKI_ROOT_URL: https://liquipedia.net/starcraft2
       LIQUIPEDIA_URL: https://liquipedia.net
@@ -29,25 +34,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
-      # Liquipedia rate-limits per client IP and hosted runners share a pool of
-      # datacenter IPs, so the run tries to borrow an IP of its own. A proxy you
-      # control (SMOKE_HTTPS_PROXY) wins; otherwise pick a free one, rotating
-      # daily. Both are best-effort — if nothing works this leaves HTTPS_PROXY
-      # empty and the smoke run connects directly.
-      - name: Select proxy for the smoke run
-        continue-on-error: true
-        env:
-          SMOKE_HTTPS_PROXY: ${{ secrets.SMOKE_HTTPS_PROXY }}
-        run: |
-          proxy="$SMOKE_HTTPS_PROXY"
-          if [ -n "$proxy" ]; then
-            echo "using the SMOKE_HTTPS_PROXY secret"
-          else
-            proxy=$(./scripts/pick-liquipedia-proxy.sh)
-          fi
-          echo "HTTPS_PROXY=$proxy" >> "$GITHUB_ENV"
-
-      - run: pnpm test:smoke
+      - name: Run smoke tests
+        id: smoke
+        run: pnpm test:smoke:ci
         env:
           # Liquipedia rate-limits per client IP, and hosted runners come from a
           # shared datacenter pool whose budget is often already spent by
@@ -55,6 +44,127 @@ jobs:
           # out — far longer than the app's default, which has to fit inside a
           # serverless request.
           LIQUIPEDIA_RETRY_BUDGET_MS: '240000'
-          # Makes Node's fetch honor the HTTPS_PROXY chosen above. An empty
-          # value is a no-op, so this is safe when no proxy was found.
+          # A proxy you control gives the run an IP that isn't shared with every
+          # other Actions job, which is the only reliable way out of the per-IP
+          # block. Optional: unset is a no-op and the run connects directly.
+          HTTPS_PROXY: ${{ secrets.SMOKE_HTTPS_PROXY }}
+          # Makes Node's fetch honor HTTPS_PROXY. Harmless when it is empty.
           NODE_OPTIONS: --use-env-proxy
+
+      # A rate-limited run skips its tests, and a run whose tests all skipped
+      # still exits 0 — so "green" alone does not mean the live contract was
+      # checked. Read the counts back out and say which happened, in the log and
+      # in the run summary.
+      - name: Classify outcome
+        id: outcome
+        if: always()
+        run: |
+          set -euo pipefail
+          tap=smoke-results.tap
+          if [ ! -f "$tap" ]; then
+            echo "::error::the smoke run produced no TAP output ($tap) — cannot tell whether the contract was verified"
+            exit 1
+          fi
+
+          count() { sed -n "s/^# *$1 \([0-9]\{1,\}\) *$/\1/p" "$tap" | tail -n1; }
+          pass=$(count pass)
+          fail=$(count fail)
+          skipped=$(count skipped)
+
+          if [ -z "$pass" ] || [ -z "$fail" ] || [ -z "$skipped" ]; then
+            echo "::error::could not parse the smoke summary out of $tap"
+            sed -n '1,40p' "$tap"
+            exit 1
+          fi
+
+          echo "pass=$pass fail=$fail skipped=$skipped"
+
+          if [ "$skipped" = "0" ] && [ "$pass" -gt 0 ]; then
+            echo 'verified=true' >> "$GITHUB_OUTPUT"
+            echo "### Live contract verified ($pass passed)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'verified=false' >> "$GITHUB_OUTPUT"
+            echo "### Live contract NOT verified" >> "$GITHUB_STEP_SUMMARY"
+            echo "$skipped of $((pass + fail + skipped)) tests skipped — Liquipedia rate-limited this runner, so upstream drift would not have been caught." >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::Liquipedia rate-limited this runner: $skipped test(s) skipped, the live contract was not verified"
+          fi
+
+  # Marker job. Its conclusion records, in this workflow's own run history,
+  # whether a given run actually checked the live contract: `success` means
+  # verified, `skipped` means the run was throttled and verified nothing. The
+  # watchdog below reads these conclusions back, so no cache or artifact is
+  # needed to carry state between runs.
+  contract-verified:
+    needs: smoke
+    if: needs.smoke.outputs.verified == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Live Liquipedia contract verified on this run.'
+
+  # Skipping keeps a throttled day from crying wolf, but it must not let the
+  # tests quietly verify nothing forever. If no run has verified the contract in
+  # MAX_SKIP_DAYS, that is no longer noise — fail and say so.
+  coverage-watchdog:
+    needs: smoke
+    # Scheduled runs only: a PR that happens to land on a throttled runner
+    # should not be blocked by an environment problem.
+    if: always() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Fail if the contract has gone unverified too long
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          VERIFIED_TODAY: ${{ needs.smoke.outputs.verified }}
+          MAX_SKIP_DAYS: '7'
+        run: |
+          set -euo pipefail
+
+          if [ "$VERIFIED_TODAY" = 'true' ]; then
+            echo 'This run verified the contract; nothing to check.'
+            exit 0
+          fi
+
+          # Runs come back newest-first, so the first match is the most recent
+          # verified run.
+          runs=$(gh api \
+            "repos/$REPO/actions/workflows/smoke.yml/runs?branch=main&status=completed&per_page=30" \
+            --jq '.workflow_runs[] | "\(.id) \(.created_at)"')
+
+          examined=0
+          last_verified=''
+          while read -r id created; do
+            [ -n "$id" ] || continue
+            examined=$((examined + 1))
+            # `first` rather than a `| head -1` pipe: under `set -o pipefail` a
+            # closed pipe would surface as a SIGPIPE failure and fail the job.
+            conclusion=$(gh api "repos/$REPO/actions/runs/$id/jobs" \
+              --jq '[.jobs[] | select(.name == "contract-verified") | .conclusion] | first // ""')
+            if [ "$conclusion" = 'success' ]; then
+              last_verified="$created"
+              break
+            fi
+          done <<< "$runs"
+
+          if [ -n "$last_verified" ]; then
+            age=$(( ( $(date -u +%s) - $(date -u -d "$last_verified" +%s) ) / 86400 ))
+            echo "Last verified run: $last_verified (${age}d ago)."
+            if [ "$age" -gt "$MAX_SKIP_DAYS" ]; then
+              echo "::error::The live Liquipedia contract has not been verified for ${age} days (limit ${MAX_SKIP_DAYS}). The smoke tests have been skipping, so upstream drift would go unnoticed. Set the SMOKE_HTTPS_PROXY secret to a proxy you control, or run these tests somewhere with a non-shared egress IP."
+              exit 1
+            fi
+            exit 0
+          fi
+
+          # No verified run in the window at all. Before the first verified run
+          # ever lands there is nothing to measure against, so only fail once
+          # enough runs have come and gone to rule that out.
+          if [ "$examined" -gt "$MAX_SKIP_DAYS" ]; then
+            echo "::error::None of the last ${examined} completed runs verified the live Liquipedia contract. The smoke tests are passing without checking anything. Set the SMOKE_HTTPS_PROXY secret to a proxy you control, or run these tests somewhere with a non-shared egress IP."
+            exit 1
+          fi
+
+          echo "::warning::No verified run found in the last ${examined} completed run(s), which is too few to judge yet — not failing."
