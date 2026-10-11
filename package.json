@@ -17,7 +17,8 @@
 		"format": "biome format --write .",
 		"check": "biome check --write .",
 		"typecheck": "tsc --noEmit",
-		"test:smoke": "SC2_WIKI_ROOT_URL=${SC2_WIKI_ROOT_URL:-https://liquipedia.net/starcraft2} LIQUIPEDIA_URL=${LIQUIPEDIA_URL:-https://liquipedia.net} tsx --test \"src/**/*.smoke.test.ts\""
+		"test:smoke": "SC2_WIKI_ROOT_URL=${SC2_WIKI_ROOT_URL:-https://liquipedia.net/starcraft2} LIQUIPEDIA_URL=${LIQUIPEDIA_URL:-https://liquipedia.net} tsx --test \"src/**/*.smoke.test.ts\"",
+		"test:smoke:ci": "SC2_WIKI_ROOT_URL=${SC2_WIKI_ROOT_URL:-https://liquipedia.net/starcraft2} LIQUIPEDIA_URL=${LIQUIPEDIA_URL:-https://liquipedia.net} tsx --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=tap --test-reporter-destination=smoke-results.tap \"src/**/*.smoke.test.ts\""
 	},
 	"dependencies": {
 		"cheerio": "^1.0.0",

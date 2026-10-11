@@ -38,3 +38,5 @@ next-env.d.ts
 
 .old
 /tmp
+# smoke test machine-readable output
+/smoke-results.tap
