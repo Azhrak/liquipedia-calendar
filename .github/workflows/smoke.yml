@@ -138,11 +138,16 @@ jobs:
           last_verified=''
           while read -r id created; do
             [ -n "$id" ] || continue
-            examined=$((examined + 1))
             # `first` rather than a `| head -1` pipe: under `set -o pipefail` a
             # closed pipe would surface as a SIGPIPE failure and fail the job.
             conclusion=$(gh api "repos/$REPO/actions/runs/$id/jobs" \
               --jq '[.jobs[] | select(.name == "contract-verified") | .conclusion] | first // ""')
+            # Runs from before this marker job existed have no record either
+            # way. Counting them as unverified would fail the very first
+            # throttled run after rollout, so skip them entirely: an absent job
+            # is "no data", a `skipped` one is "we were throttled".
+            [ -n "$conclusion" ] || continue
+            examined=$((examined + 1))
             if [ "$conclusion" = 'success' ]; then
               last_verified="$created"
               break
