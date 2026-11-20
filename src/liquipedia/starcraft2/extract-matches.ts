@@ -58,27 +58,28 @@ function parseMatch($: cheerio.CheerioAPI, el: AnyNode): SC2Match | null {
 	const tsSeconds = parseInt(timestampStr, 10)
 	if (Number.isNaN(tsSeconds)) return null
 
-	const leftEl = $el.find('.match-info-header-opponent-left').first()[0]
-	const rightEl = $el
-		.find('.match-info-header-opponent:not(.match-info-header-opponent-left)')
-		.first()[0]
+	// Each opponent is `.block-players-wrapper` followed by a sibling <div> that
+	// holds the score (empty for upcoming matches).
+	const opponentEls = $el.find('.match-ticker-card__opponent')
+	const leftEl = opponentEls.eq(0)[0]
+	const rightEl = opponentEls.eq(1)[0]
 
 	if (!leftEl || !rightEl) return null
 
-	const scoreEls = $el.find('.match-info-header-scoreholder-score')
-	const scoreLeft = scoreEls.eq(0).text().trim() || null
-	const scoreRight = scoreEls.eq(1).text().trim() || null
+	const scoreOf = (opponent: AnyNode) =>
+		$(opponent).children('div').not('.block-players-wrapper').last().text().trim() || null
 
-	const teamLeft = parseTeam($, leftEl, scoreLeft)
-	const teamRight = parseTeam($, rightEl, scoreRight)
+	const teamLeft = parseTeam($, leftEl, scoreOf(leftEl))
+	const teamRight = parseTeam($, rightEl, scoreOf(rightEl))
 
 	if (!teamLeft && !teamRight) return null
 
-	const formatText = $el.find('.match-info-header-scoreholder-lower').text().trim()
+	// e.g. "Bo5" or "The Fun One - Bo5"
+	const formatText = $el.find('.match-ticker-card__header > div').text().trim()
 	const boMatch = formatText.match(/[Bb]o(\d+)|[Bb]est[ -]of[ -](\d+)/)
 	const bestOf = boMatch ? parseInt(boMatch[1] ?? boMatch[2]) : null
 
-	const tournamentAnchor = $el.find('.match-info-tournament-name a').first()
+	const tournamentAnchor = $el.find('.match-ticker-card-tournament-name a').first()
 	const tournamentName =
 		tournamentAnchor.find('span').text().trim() || tournamentAnchor.text().trim() || null
 	const tournamentHref = tournamentAnchor.attr('href')
@@ -118,7 +119,7 @@ export const extractStarCraft2Matches = cache(async (): Promise<SC2Match[]> => {
 	const $ = cheerio.load(html)
 
 	const matches: SC2Match[] = []
-	$('div.match-info').each((_, el) => {
+	$('div.match-ticker-card').each((_, el) => {
 		const match = parseMatch($, el)
 		if (match) matches.push(match)
 	})
